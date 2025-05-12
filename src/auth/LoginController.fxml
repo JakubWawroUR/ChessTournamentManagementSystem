@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane fx:id="mainBox" prefHeight="400.0" prefWidth="600.0" stylesheets="@../assets/styles/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.auth.LoginController">
+    <children>
+        <ButtonBar layoutX="358.0" layoutY="297.0" prefHeight="40.0" prefWidth="48.0" />
+        <GridPane layoutX="14.0" layoutY="14.0" prefHeight="374.0" prefWidth="579.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <GridPane fx:id="loginRight" alignment="CENTER" GridPane.columnIndex="1">
+                    <columnConstraints>
+                        <ColumnConstraints fx:id="loginRight" halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                    <children>
+                        <Text fx:id="loginText" fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="LOGOWANIE" textAlignment="CENTER" wrappingWidth="157.13671875" />
+                        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1">
+                            <children>
+                                <TextField fx:id="loginField" promptText="Podaj login:">
+                                    <VBox.margin>
+                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                                    </VBox.margin>
+                                </TextField>
+                                <PasswordField fx:id="passwordField" promptText="Podaj hasło:">
+                                    <VBox.margin>
+                                        <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                                    </VBox.margin>
+                                </PasswordField>
+                            </children>
+                            <padding>
+                                <Insets bottom="25.0" left="25.0" right="25.0" top="25.0" />
+                            </padding>
+                        </VBox>
+                        <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="2">
+                            <children>
+                                <Button fx:id="loginButton" alignment="CENTER" mnemonicParsing="false" onAction="#handleLoginButtonAction" text="Zaloguj" />
+                            </children>
+                            <padding>
+                                <Insets right="40.0" />
+                            </padding>
+                        </HBox>
+                    </children>
+                </GridPane>
+                <VBox fx:id="loginLeft" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+                    <children>
+                  <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@../assets/icons/icons8-chess-100.png" />
+                     </image>
+                  </ImageView>
+                        <ToggleButton fx:id="registerButton" mnemonicParsing="false" onAction="#handleRegisterButtonAction" text="Zarejestruj">
+                            <VBox.margin>
+                                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                            </VBox.margin>
+                        </ToggleButton>
+                    </children>
+                </VBox>
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

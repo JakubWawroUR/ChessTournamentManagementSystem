@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<VBox fx:id="mainBox" prefWidth="250.0" spacing="10.0" stylesheets="@../assets/styles/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Player.PlayerNavigation">
+    <padding>
+        <Insets left="15.0" top="15.0" />
+    </padding>
+    <children>
+        <Text fx:id="navigationTitle" strokeType="OUTSIDE" strokeWidth="0.0" text="Nawigacja">
+            <font>
+                <Font size="24.0" />
+            </font>
+        </Text>
+        <Text fx:id="profileText" onMouseClicked="#handleProfileClicked" strokeType="OUTSIDE" strokeWidth="0.0" text="- Profil">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Text>
+        <Text fx:id="tournamentsText" onMouseClicked="#handleTournamentsClicked" strokeType="OUTSIDE" strokeWidth="0.0" text="- Turnieje">
+            <font>
+                <Font size="18.0" />
+            </font>
+        </Text>
+    </children>
+</VBox>

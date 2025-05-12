@@ -1,0 +1,216 @@
+.button {
+    -fx-font-size: 14px;
+    -fx-background-color: #b63fb6;
+    -fx-text-fill: white;
+
+    -fx-padding: 8px 15px;
+    -fx-cursor: hand;
+    -fx-border-radius: 25px;
+    -fx-font-weight: 900;
+}
+.toggle-button{
+    -fx-font-size: 14px;
+    -fx-background-color: #b63fb6;
+    -fx-text-fill: white;
+    -fx-border-radius: 5px;
+    -fx-padding: 8px 15px;
+    -fx-cursor: hand;
+    -fx-font-weight: 900;
+}
+#loginRight{
+    -fx-background-color: #451945;
+
+}
+#rightRegister{
+    -fx-background-color: #451945;
+}
+#rightRegisterVbox{
+    -fx-background-color: #451945;
+
+
+}
+
+#loginText{
+    -fx-font-size: 25;
+    -fx-min-width: auto;
+    -fx-font-weight: 900;
+    -fx-fill: white;
+}
+#loginRight .text-field{
+    -fx-background-color: white;
+    -fx-fill: black;
+
+}
+#loginLeft {
+    -fx-background-color: #613161;
+}
+#registerLeft{
+    -fx-background-color: #613161;
+
+}
+#mainBox{
+    -fx-text-fill: white;
+    -fx-background-color: #613161;
+}
+#RegisterButton{
+    -fx-font-size: 14px;
+    -fx-background-color: #b63fb6;
+    -fx-text-fill: white;
+    -fx-border-radius: 5px;
+    -fx-padding: 8px 15px;
+    -fx-cursor: hand;
+    -fx-font-weight: 900;
+}
+#registerText{
+    -fx-font-size: 25;
+    -fx-min-width: auto;
+    -fx-font-weight: 900;
+    -fx-fill: white;
+}
+
+#topBar{
+    -fx-background-color: #451945;
+    -fx-fill: white;
+
+}
+#topBarText{
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+
+#welcomeLabel{
+    -fx-text-fill: white;
+    -fx-font-size: 75px;
+    -fx-fill: white;
+}
+#navigationBox{
+    -fx-background-color: #613161;
+}
+#navigationTitle{
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+#usersText{
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+
+#tournamentsText{
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-view{
+    -fx-background-color: #613161;
+    -fx-border-color: #451945;
+    -fx-border-width: 3px;
+
+}
+.table-view {
+    -fx-background-color: #613161;
+    -fx-border-color: #451945;
+    -fx-border-width: 3px;
+}
+
+
+.table-view .column-header-background {
+    -fx-background-color: #613161;
+    -fx-border-color: #381B38;
+    -fx-border-width: 2px;
+}
+
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #381B38;
+
+
+}
+
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold
+}
+
+
+.table-view .table-cell {
+    -fx-border-color: #5A355A;
+    -fx-border-width: 0 1px 1px 0;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+
+.table-view:focused .table-row-cell:filled:selected {
+    -fx-background-color: #dc6fdc;
+    -fx-text-fill: white;
+}
+
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #613161;
+}
+
+
+.table-view .table-row-cell:even {
+    -fx-background-color: #7A3D7A;
+}
+#formText{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+}
+#tournamentsTitle{
+    -fx-text-fill: white;
+
+}
+#tournamentsInfoText{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+#tournamentNameLabel{
+    -fx-text-fill: white;
+}
+#tournamentSlotsLabel{
+    -fx-text-fill: white;
+}
+#tournamentStartDateLabel{
+    -fx-text-fill: white;
+}
+#tournamentEndDateLabel{
+    -fx-text-fill: white;
+}
+#currentPlayerStatusLabel{
+    -fx-text-fill: white;
+}
+#playerNameLabel{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+#firstNameLabel{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+#lastNameLabel{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+#rankingLabel{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+#recordLabel{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+#playerProfileGamesHistory{
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+#profileText{
+    -fx-fill: white;
+    -fx-font-weight: bold;
+}
