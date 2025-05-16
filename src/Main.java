@@ -16,7 +16,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws IOException {
         stg = primaryStage;
         primaryStage.setResizable(false);
-        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("auth/main.fxml"));
         primaryStage.setTitle("Szachy - JavaFX");
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.show();

@@ -10,4 +10,5 @@ module ChessProject {
     exports src;
     exports src.Connection;
     exports src.auth to javafx.fxml;
+
 }

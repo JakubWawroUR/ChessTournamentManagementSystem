@@ -29,7 +29,7 @@ public class UserDAO {
         }
         return users;
     }
-    public boolean checkUserExists(String login,String password) {
+    public boolean checkUserExists(String login,String password){
         String query = "SELECT 1 FROM USERS WHERE login = ? AND password = ? ";
         try(Connection conn = JDBC.getConnection();
             PreparedStatement ps = conn.prepareStatement(query)){
@@ -42,5 +42,8 @@ public class UserDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    public void addUser(User user)throws SQLException {
+
     }
 }
