@@ -14,6 +14,7 @@ import src.dao.UserDAO;
 import src.model.User;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class RegisterController implements SceneSwitcher {
     @FXML
@@ -28,9 +29,33 @@ public class RegisterController implements SceneSwitcher {
     private PasswordField password1;
     @FXML
     private PasswordField password2;
+    public void userRegister(ActionEvent event) throws IOException {
+        handleRegister(event);
+    }
+    private void handleRegister(ActionEvent event) throws IOException {
+        if (!password1.getText().equals(password2.getText())) {
+            System.out.println("Hasła nie są identyczne!");
+            return;
+        }
 
-    private void handleRegister(ActionEvent event){
+        User newUser = new User(
+                0, // ID będzie generowane przez bazę danych
+                login.getText(),
+                password1.getText(),
+                firstname.getText(),
+                lastname.getText(),
+                null // Rola będzie ustawiona automatycznie przez bazę danych
+        );
 
+        try {
+            userDAO.addUser(newUser);
+            System.out.println("Użytkownik zarejestrowany pomyślnie!");
+            // Po rejestracji przełącz na scenę logowania
+            switchScene(event);
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+            System.out.println("Błąd podczas rejestracji użytkownika");
+        }
     }
     private UserDAO userDAO = new UserDAO();
     @Override

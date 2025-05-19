@@ -43,7 +43,22 @@ public class UserDAO {
             return false;
         }
     }
-    public void addUser(User user)throws SQLException {
+    public void addUser(User user) throws SQLException {
+        String query = "INSERT INTO USERS (login, password, firstname, lastname) VALUES (?, ?, ?, ?)";
+        try (Connection conn = JDBC.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, user.getLogin());
+            ps.setString(2, user.getPassword());
+            ps.setString(3, user.getFirstname());
+            ps.setString(4, user.getLastname());
+            ps.executeUpdate();
 
+            // Pobierz wygenerowane ID
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    user.setId(generatedKeys.getInt(1));
+                }
+            }
+        }
     }
 }
