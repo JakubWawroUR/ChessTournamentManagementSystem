@@ -1,6 +1,7 @@
 package src.dao;
 
 import src.Connection.JDBC;
+import src.model.Role;
 import src.model.User;
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class UserDAO {
                         rs.getString("password"),
                         rs.getString("firstname"),
                         rs.getString("lastname"),
-                        rs.getString("role")
+                        Role.valueOf(rs.getString("role").toUpperCase())
                 );
                 users.add(user);
             }

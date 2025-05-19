@@ -11,6 +11,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 import src.dao.UserDAO;
+import src.model.Role;
 import src.model.User;
 
 import java.io.IOException;
@@ -39,12 +40,12 @@ public class RegisterController implements SceneSwitcher {
         }
 
         User newUser = new User(
-                0, // ID będzie generowane przez bazę danych
+                0,
                 login.getText(),
                 password1.getText(),
                 firstname.getText(),
                 lastname.getText(),
-                null // Rola będzie ustawiona automatycznie przez bazę danych
+                Role.GRACZ
         );
 
         try {
