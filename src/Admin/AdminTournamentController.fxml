@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane prefHeight="768.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Admin.AdminTournamentController">
+    <children>
+        <GridPane layoutX="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="14.0" AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="0.0">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints vgrow="NEVER" />
+                <RowConstraints vgrow="ALWAYS" />
+            </rowConstraints>
+
+            <children>
+                <fx:include source="AdminTopBar.fxml" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+
+                <HBox spacing="10.0" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                      AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                      AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+                    <fx:include source="NavigationPanel.fxml"/>
+
+                    <AnchorPane HBox.hgrow="ALWAYS">
+                        <children>
+                            <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="992.0" minWidth="10.0" prefWidth="710.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="500.0" minWidth="0.0" prefWidth="282.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                <children>
+                                    <TableView fx:id="tournamentTable" editable="true" prefHeight="688.0" prefWidth="311.0">
+                                        <columns>
+                                            <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
+                                            <TableColumn fx:id="tournamentNameColumn" prefWidth="200.0" text="Nazwa Turnieju" />
+                                            <TableColumn fx:id="startDateColumn" prefWidth="100.0" text="Data Startu" />
+                                            <TableColumn fx:id="endDateColumn" prefWidth="100.0" text="Data Końca" />
+                                            <TableColumn fx:id="maxSlotsColumn" prefWidth="80.0" text="Max Miejsc" />
+                                            <TableColumn fx:id="freeSlotsColumn" prefWidth="80.0" text="Wolne Miejsca" />
+                                            <TableColumn fx:id="actionsColumn" prefWidth="150.0" text="Operacje" />
+                                        </columns>
+                                        <columnResizePolicy>
+                                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                        </columnResizePolicy>
+                                    </TableView>
+
+                                    <VBox prefHeight="688.0" prefWidth="372.0" GridPane.columnIndex="1">
+                                        <children>
+                                            <TextField fx:id="tournamentIdField" visible="false" managed="false" />
+                                            <Label text="Nazwa turnieju" />
+                                            <TextField fx:id="tournamentNameField" prefHeight="25.0" prefWidth="312.0">
+                                                <VBox.margin>
+                                                    <Insets bottom="10.0" />
+                                                </VBox.margin>
+                                            </TextField>
+                                            <Label text="Data rozpoczęcia" />
+                                            <DatePicker fx:id="startDatePicker" prefHeight="25.0" prefWidth="312.0">
+                                                <VBox.margin>
+                                                    <Insets bottom="10.0" />
+                                                </VBox.margin>
+                                            </DatePicker>
+                                            <Label text="Data zakończenia" />
+                                            <DatePicker fx:id="endDatePicker" prefHeight="25.0" prefWidth="312.0">
+                                                <VBox.margin>
+                                                    <Insets bottom="10.0" />
+                                                </VBox.margin>
+                                            </DatePicker>
+                                            <Label text="Max miejsc" />
+                                            <TextField fx:id="maxSlotsField" prefHeight="25.0" prefWidth="312.0">
+                                                <VBox.margin>
+                                                    <Insets bottom="10.0" />
+                                                </VBox.margin>
+                                            </TextField>
+                                            <Label text="Wolne miejsca" />
+                                            <TextField fx:id="freeSlotsField" prefHeight="25.0" prefWidth="312.0">
+                                                <VBox.margin>
+                                                    <Insets bottom="25.0" />
+                                                </VBox.margin>
+                                            </TextField>
+
+                                            <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                <Button fx:id="addTournamentButton" onAction="#handleAddTournament" text="Dodaj Turniej" />
+                                                <Button fx:id="updateTournamentButton" onAction="#handleUpdateTournament" text="Zapisz Zmiany" visible="false" managed="false" />
+                                                <Button fx:id="cancelEditButton" onAction="#handleClearForm" text="Anuluj / Wyczyść" visible="false" managed="false" />
+                                            </HBox>
+                                        </children>
+                                        <padding>
+                                            <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+                                        </padding>
+                                    </VBox>
+                                </children>
+                            </GridPane>
+                        </children>
+                    </AnchorPane>
+                </HBox>
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

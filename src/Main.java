@@ -8,6 +8,7 @@ import src.dao.UserDAO;
 import src.model.User;
 
 import java.io.IOException;
+import java.sql.SQLException; // <--- DODAJ TEN IMPORT
 import java.util.List;
 
 public class Main extends Application {
@@ -21,17 +22,16 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.show();
     }
-    public void changeScene(String fxml) throws IOException {
-        Parent pane = FXMLLoader.load(getClass().getResource(fxml));
-        stg.getScene().setRoot(pane);
-    }
-
     public static void main(String[] args) {
         UserDAO userDAO = new UserDAO();
-        List<User> users = userDAO.getAllUsers();
-
-        for (User user : users) {
-            System.out.println(user.getFirstname() + " " + user.getLastname() + " " + user.getPassword() + " " + user.getRole());
+        try { // <--- DODAJ BLOK TRY
+            List<User> users = userDAO.getAllUsers(); // Linia 26 (lub jej odpowiednik po zmianach)
+            for (User user : users) {
+                System.out.println(user.getFirstname() + " " + user.getLastname() + " " + user.getPassword() + " " + user.getRole());
+            }
+        } catch (SQLException e) { // <--- DODAJ BLOK CATCH
+            System.err.println("Błąd podczas pobierania użytkowników z bazy danych: " + e.getMessage());
+            e.printStackTrace(); // Wypisz pełny stos wywołań dla celów debugowania
         }
         launch(args);
     }

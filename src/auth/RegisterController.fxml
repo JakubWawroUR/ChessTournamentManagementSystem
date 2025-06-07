@@ -76,7 +76,7 @@
                   </ScrollPane>
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" GridPane.rowIndex="2">
                             <children>
-                                <Button fx:id="button" alignment="CENTER" mnemonicParsing="false" onAction="#userRegister" text="Zarejestruj" />
+                                <Button fx:id="button" alignment="CENTER" mnemonicParsing="false" onAction="#handleRegister" text="Zarejestruj" />
                             </children>
                             <padding>
                                 <Insets right="40.0" />

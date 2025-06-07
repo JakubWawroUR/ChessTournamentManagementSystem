@@ -8,6 +8,8 @@ public class User {
     protected String lastname;
     protected Role role;
 
+    // Ten konstruktor jest używany, gdy pobierasz użytkownika z bazy danych
+    // lub gdy aktualizujesz istniejącego użytkownika (gdzie ID jest już znane).
     public User(int id, String login, String password, String firstname, String lastname, Role role) {
         this.id = id;
         this.login = login;
@@ -16,6 +18,21 @@ public class User {
         this.lastname = lastname;
         this.role = role;
     }
+
+    // Ten konstruktor jest dla tworzenia zupełnie nowego obiektu User
+    // zanim zostanie on zapisany w bazie danych. Baza danych wygeneruje ID.
+    public User(String login, String password, String firstname, String lastname, Role role) {
+        // Pole 'id' nie jest tutaj ustawiane, ponieważ jest zazwyczaj auto-generowane przez bazę danych
+        // podczas wstawiania. Metoda addUser w UserDAO powinna później pobrać i ustawić to ID.
+        this.login = login;
+        this.password = password;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.role = role;
+    }
+
+    // Usunięto tutaj problematyczny, pusty konstruktor:
+    // public User(int id, String login, String password, Role role) { }
 
     public int getId() {
         return id;
@@ -65,4 +82,16 @@ public class User {
         this.role = role;
     }
 
+    // Opcjonalnie: Możesz nadpisać metodę toString() dla łatwiejszego debugowania
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", firstname='" + firstname + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", role=" + role +
+                '}';
+    }
 }
