@@ -13,6 +13,8 @@ public class Player extends User {
         super(id, login, password, firstname, lastname, role);
         this.playersTableId = playersTableId;
         this.ranking = ranking;
+        this.firstname = firstname;
+        this.lastname = lastname;
     }
 
     // Konstruktor dla nowego gracza, który nie ma jeszcze ID z bazy danych
@@ -50,7 +52,12 @@ public class Player extends User {
     public int getPlayersTableId() {
         return playersTableId;
     }
-
+    public String getFirstName() {
+        return firstname;
+    }
+    public String getLastName() {
+        return lastname;
+    }
     public void setPlayersTableId(int playersTableId) {
         this.playersTableId = playersTableId;
     }

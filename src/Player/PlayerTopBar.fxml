@@ -10,18 +10,24 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<GridPane GridPane.rowIndex="0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Player.PlayerTopBar" >
+<GridPane GridPane.rowIndex="0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Player.PlayerTopBar">
     <columnConstraints>
-        <ColumnConstraints hgrow="SOMETIMES" />
-        <ColumnConstraints hgrow="SOMETIMES" />
+        <ColumnConstraints hgrow="SOMETIMES" percentWidth="70.0" />
+        <ColumnConstraints hgrow="SOMETIMES" percentWidth="30.0" />
     </columnConstraints>
     <children>
         <VBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="100.0" GridPane.halignment="LEFT">
             <children>
-                <Text fx:id="headerText" strokeType="OUTSIDE" strokeWidth="0.0" text="Panel Gracza">
-                    <font>
-                        <Font size="30.0" />
-                    </font>
+                <Text fx:id="welcomeLabel" strokeType="OUTSIDE" strokeWidth="0.0" text="Witaj, Graczu"> <font>
+                    <Font size="24.0" />
+                </font>
+                </Text>
+                <Text fx:id="rankingLabel" strokeType="OUTSIDE" strokeWidth="0.0" text="Ranking: N/A"> <font>
+                    <Font size="16.0" />
+                </font>
+                    <VBox.margin>
+                        <Insets top="5.0" />
+                    </VBox.margin>
                 </Text>
             </children>
             <padding>

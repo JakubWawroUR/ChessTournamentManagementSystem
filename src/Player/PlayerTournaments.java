@@ -3,20 +3,28 @@ package src.Player;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader; // Importuj FXMLLoader
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Parent; // Importuj Parent
+import javafx.scene.Scene; // Importuj Scene
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow; // Importuj TableRow
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent; // Importuj MouseEvent
 import javafx.scene.layout.HBox;
-import src.dao.PlayerDAO; // Nowy import
+import javafx.stage.Stage; // Importuj Stage
+import src.dao.PlayerDAO;
 import src.dao.TournamentDAO;
 import src.model.Player;
 import src.model.Tournament;
+import src.Player.PlayerTournamentInfo;
 
+import java.io.IOException; // Importuj IOException
 import java.net.URL;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -35,19 +43,16 @@ public class PlayerTournaments implements Initializable {
 
     private ObservableList<Tournament> tournamentList;
     private TournamentDAO tournamentDAO;
-    private PlayerDAO playerDAO; // Dodano PlayerDAO
+    private PlayerDAO playerDAO;
     private Player currentPlayer;
 
-    // Metoda do inicjalizacji danych gracza (wywoływana z PlayerDashboard)
     public void initData(Player player) {
         this.currentPlayer = player;
         if (this.currentPlayer != null) {
             System.out.println("PlayerTournaments: initData - Gracz ID (users.idusers): " + this.currentPlayer.getId());
             System.out.println("PlayerTournaments: initData - Gracz ID (players.id): " + this.currentPlayer.getPlayersTableId());
 
-            // Ta logika jest już teraz głównie obsługiwana w UserDAO.getPlayerByLoginAndPassword
-            // ale zostawiamy tu, jako fallback lub dla debugowania
-            if (this.currentPlayer.getPlayersTableId() == 0) { // Jeśli playersTableId nie jest ustawione (np. jeśli użytkownik był tylko Userem, a teraz jest Graczem)
+            if (this.currentPlayer.getPlayersTableId() == 0) {
                 try {
                     Integer playersId = playerDAO.getPlayersTableIdByUserId(this.currentPlayer.getId());
                     if (playersId != null) {
@@ -55,7 +60,6 @@ public class PlayerTournaments implements Initializable {
                         System.out.println("PlayerTournaments: playersTableId zostało ustawione na: " + playersId);
                     } else {
                         System.err.println("Błąd: Zalogowany użytkownik (ID: " + this.currentPlayer.getId() + ") nie posiada rekordu w tabeli 'players' (prawdopodobnie nie jest graczem).");
-                        // W tej sytuacji przycisk "Dołącz" zostanie wyłączony przez setupOperationsColumn
                         showAlert(Alert.AlertType.WARNING, "Błąd danych gracza", "Twoje dane gracza są niekompletne. Nie możesz dołączać do turniejów.");
                     }
                 } catch (SQLException e) {
@@ -71,7 +75,7 @@ public class PlayerTournaments implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         tournamentDAO = new TournamentDAO();
-        playerDAO = new PlayerDAO(); // Inicjalizacja PlayerDAO
+        playerDAO = new PlayerDAO();
 
         nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         slotsInfoColumn.setCellValueFactory(new PropertyValueFactory<>("slotsInfo"));
@@ -83,6 +87,22 @@ public class PlayerTournaments implements Initializable {
         tournamentList = FXCollections.observableArrayList();
         loadTournamentDataFromDatabase();
         tournamentTable.setItems(tournamentList);
+
+        // --- DODANA LOGIKA DLA KLIKNIĘĆ W WIERSZ ---
+        tournamentTable.setRowFactory(tv -> {
+            TableRow<Tournament> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                // Sprawdzamy, czy to podwójne kliknięcie i czy wiersz nie jest pusty
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    Tournament selectedTournament = row.getItem();
+                    System.out.println("Wybrano turniej: " + selectedTournament.getName());
+                    // Przełączamy scenę na PlayerTournamentInfo, przekazując dane turnieju
+                    switchToPlayerTournamentInfo(selectedTournament);
+                }
+            });
+            return row;
+        });
+        // --- KONIEC DODANEJ LOGIKI ---
     }
 
     private void setupOperationsColumn() {
@@ -115,7 +135,6 @@ public class PlayerTournaments implements Initializable {
                     boolean hasFreeSlots = tournament.getFreeSlots() > 0;
                     boolean isRegistered = false;
 
-                    // WAŻNA ZMIANA: Sprawdzamy, czy currentPlayer i playersTableId są poprawne, zanim sprawdzimy rejestrację
                     if (currentPlayer != null && currentPlayer.getPlayersTableId() != 0) {
                         try {
                             isRegistered = tournamentDAO.isPlayerRegisteredForTournament(tournament.getId(), currentPlayer.getPlayersTableId());
@@ -124,14 +143,11 @@ public class PlayerTournaments implements Initializable {
                             isRegistered = false;
                         }
                     } else {
-                        // Jeśli currentPlayer nie jest zainicjalizowany lub playersTableId jest 0,
-                        // to nie możemy sprawdzić rejestracji, a przycisk "Dołącz" powinien być wyłączony.
                         joinButton.setDisable(true);
-                        joinButton.setText("Błąd gracza"); // Możesz tu dać inny tekst
+                        joinButton.setText("Błąd gracza");
                         setGraphic(pane);
-                        return; // Wychodzimy, aby nie renderować dalej
+                        return;
                     }
-
 
                     if (isEnded || isRegistered || !hasFreeSlots) {
                         joinButton.setDisable(true);
@@ -156,12 +172,7 @@ public class PlayerTournaments implements Initializable {
         });
     }
 
-    /**
-     * Obsługuje logikę dołączania gracza do turnieju.
-     * @param tournament Turniej, do którego gracz chce dołączyć.
-     */
     private void handleJoinTournament(Tournament tournament) {
-        // WAŻNA ZMIANA: Sprawdzamy, czy currentPlayer i playersTableId są poprawne
         if (currentPlayer == null || currentPlayer.getPlayersTableId() == 0) {
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nie znaleziono pełnych danych gracza. Proszę się zalogować ponownie lub upewnij się, że masz przypisany profil gracza.");
             return;
@@ -180,21 +191,15 @@ public class PlayerTournaments implements Initializable {
         }
 
         try {
-            // WAŻNA ZMIANA: Sprawdzamy, czy gracz jest już zapisany, używając playersTableId
             boolean isAlreadyRegistered = tournamentDAO.isPlayerRegisteredForTournament(tournament.getId(), currentPlayer.getPlayersTableId());
             if (isAlreadyRegistered) {
                 showAlert(Alert.AlertType.INFORMATION, "Już zapisany", "Jesteś już zapisany na turniej '" + tournament.getName() + "'.");
                 return;
             }
 
-            // 1. Dodaj rekord do tabeli tournament_players
-            // TUTAJ JEST NAJWAŻNIEJSZA ZMIANA: Przekazujemy playersTableId, nie idusers
             tournamentDAO.addPlayerToTournament(tournament.getId(), currentPlayer.getPlayersTableId());
-
-            // 2. Zmniejsz liczbę wolnych miejsc w tabeli tournaments
             tournamentDAO.updateFreeSlots(tournament.getId(), -1);
 
-            // 3. Zaktualizuj obiekt Tournament w ObservableList
             tournament.setFreeSlots(tournament.getFreeSlots() - 1);
             tournamentTable.refresh();
 
@@ -223,11 +228,40 @@ public class PlayerTournaments implements Initializable {
         }
     }
 
-    private void showAlert(Alert.AlertType alertType, String title, String message) { // Zmieniono nazwę argumentu z 'String' na 'message'
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    // --- NOWA METODA DO PRZEŁĄCZANIA SCENY NA PlayerTournamentInfo ---
+    private void switchToPlayerTournamentInfo(Tournament tournament) {
+        try {
+            // Upewnij się, że ścieżka do Twojego FXML pliku PlayerTournamentInfo jest poprawna!
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("PlayerTournamentInfo.fxml"));
+            Parent root = loader.load();
+
+            // Pobierz kontroler nowej sceny
+            PlayerTournamentInfo controller = loader.getController();
+
+            // Sprawdź, czy kontroler został poprawnie załadowany i przekaż mu dane
+            if (controller != null) {
+                // Przekazujemy zarówno obiekt Tournament, jak i bieżącego gracza (currentPlayer)
+                // Kontroler PlayerTournamentInfoController musi mieć metodę `initData`
+                controller.initData(tournament, currentPlayer);
+            }
+
+            // Ustaw nową scenę na istniejącym Stage (oknie)
+            Stage stage = (Stage) tournamentTable.getScene().getWindow();
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd ładowania sceny", "Nie udało się załadować sceny szczegółów turnieju. Sprawdź plik FXML i kontroler PlayerTournamentInfo.");
+        }
     }
 }

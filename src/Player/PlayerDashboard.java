@@ -4,9 +4,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.GridPane; // Zakładam, że to pole jest używane, inaczej można usunąć
+import javafx.scene.layout.VBox;    // Zakładam, że to pole jest używane, inaczej można usunąć
 import src.model.Player;
 
 import java.io.IOException;
@@ -18,123 +18,217 @@ import javafx.animation.Timeline;
 import javafx.util.Duration;
 
 public class PlayerDashboard implements Initializable {
-    @FXML
-    private Label welcomeLabel; // musi być w PlayerTopBar.fxml i mieć fx:id="welcomeLabel"
+    @FXML private AnchorPane contentPane; // Główny panel do ładowania widoków
+    @FXML private PlayerNavigationController playerNavigationPanelController; // Wstrzyknięty kontroler nawigacji
+    @FXML private PlayerTopBar playerTopBarController; // Wstrzyknięty kontroler paska górnego
 
-    @FXML
-    private Label rankingLabel; // również z PlayerTopBar.fxml lub innym miejscem
+    private Player currentPlayer; // Obiekt gracza zalogowanego w tej sesji
+    private Timeline debugTimer; // Timer do celów debugowania
+    private boolean initialized = false; // Flaga wskazująca, czy initialize() zostało uruchomione
 
-    @FXML
-    private AnchorPane contentPane; // kontener na dynamiczne widoki
-
-    @FXML
-    private VBox playerNavigationPanel; // zgodnie z root PlayerNavigationPanel.fxml - jeśli root jest VBox
-
-    private Player currentPlayer;
-    private Timeline debugTimer;
-
-    public void initData(Player player) {
+    /**
+     * Ustawia obiekt gracza dla tego Dashboardu. Wywoływane po załadowaniu FXML.
+     * @param player Zalogowany obiekt gracza.
+     */
+    public void setPlayer(Player player) {
         this.currentPlayer = player;
-        if (welcomeLabel != null) {
-            welcomeLabel.setText("Witaj, " + player.getFirstname() + " " + player.getLastname());
+        System.out.println("PlayerDashboard (setPlayer): Player data received: " + player.getFirstname() + " (currentPlayer set to " + (this.currentPlayer != null ? "NOT-NULL" : "NULL") + ").");
+
+        // Jeśli initialize już się wykonało, zaktualizuj UI natychmiast
+        if (initialized) {
+            updateUIWithPlayerInfo();
+            System.out.println("PlayerDashboard (setPlayer): UI updated immediately as initialize() already ran.");
         } else {
-            System.err.println("welcomeLabel is null in initData!");
+            System.out.println("PlayerDashboard (setPlayer): initialize() has not run yet. UI will be updated in initialize().");
+        }
+    }
+
+    /**
+     * Metoda initialize() jest wywoływana przez FXMLLoader po przetworzeniu wszystkich elementów FXML.
+     * Jest to punkt, w którym można zainicjować kontroler i jego komponenty.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        System.out.println("PlayerDashboard (initialize): Metoda initialize() rozpoczyna działanie.");
+
+        // Sprawdzenie, czy currentPlayer jest null na początku initialize (oczekiwane zachowanie)
+        if (this.currentPlayer == null) {
+            System.out.println("PlayerDashboard (initialize): currentPlayer jest NULL na początku initialize(). Jest to oczekiwane, jeśli setPlayer() zostanie wywołane później.");
+        } else {
+            System.out.println("PlayerDashboard (initialize): currentPlayer jest NIE-NULL na początku initialize(): " + currentPlayer.getFirstname() + ". (Niespodziewane, ale dobre).");
         }
 
-        if (rankingLabel != null) {
-            rankingLabel.setText("Twój ranking: " + player.getRanking());
+        // Ustawienie referencji PlayerDashboard w PlayerNavigationController
+        if (playerNavigationPanelController != null) {
+            this.playerNavigationPanelController.setPlayerDashboardController(this);
+            System.out.println("PlayerDashboard (initialize): PlayerNavigationController ustawiony (wstrzyknięty) i referencja przekazana.");
+        } else {
+            System.err.println("PlayerDashboard (initialize): BŁĄD! playerNavigationPanelController jest null po wstrzyknięciu FXML.");
         }
 
-        // --- ZMIANA TUTAJ: USUNIĘTO wywołanie handleShowTournaments() ---
-        // Usunięto: handleShowTournaments();
-        // contentPane jest już ustawiony w PlayerDashboard.fxml z tekstem "WITAJ".
-        // Widoki będą ładowane dynamicznie po kliknięciu przycisków w PlayerNavigationPanel.
+        // Ustawienie referencji PlayerDashboard w PlayerTopBarController
+        if (playerTopBarController != null) {
+            this.playerTopBarController.setPlayerDashboardController(this); // KLUCZOWA LINIA
+            System.out.println("PlayerDashboard (initialize): PlayerTopBar ustawiony (wstrzyknięty) i referencja PlayerDashboard przekazana.");
 
+            // Jeśli currentPlayer jest już dostępny, zaktualizuj UI (rzadki przypadek z obecnym przepływem)
+            if (this.currentPlayer != null) {
+                updateUIWithPlayerInfo();
+                System.out.println("PlayerDashboard (initialize): UI updated from initialize() because currentPlayer was already available.");
+            } else {
+                System.out.println("PlayerDashboard (initialize): currentPlayer jest NULL. Aktualizacja UI odłożona do setPlayer().");
+            }
+        } else {
+            System.err.println("PlayerDashboard (initialize): BŁĄD! playerTopBarController jest null po wstrzyknięciu FXML. Sprawdź fx:id w PlayerDashboard.fxml!");
+        }
+
+        // Ustawienie flagi na true po zakończeniu initialize
+        initialized = true;
+
+        // Uruchomienie timera debugowania
         startDebugTimer();
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (playerNavigationPanel != null) {
-            Object ctrl = playerNavigationPanel.getProperties().get("fx:controller");
-            if (ctrl instanceof PlayerNavigationController navCtrl) {
-                navCtrl.setPlayerDashboardController(this);
-                System.out.println("PlayerDashboard: PlayerNavigationController ustawiony.");
+    /**
+     * Aktualizuje elementy UI (np. pasek górny) danymi gracza.
+     */
+    private void updateUIWithPlayerInfo() {
+        if (currentPlayer != null) {
+            if (playerTopBarController != null) {
+                playerTopBarController.setWelcomeText("Witaj, " + currentPlayer.getFirstname() + " " + currentPlayer.getLastname());
+                playerTopBarController.setRankingText("Twój ranking: " + currentPlayer.getRanking());
+                System.out.println("PlayerDashboard: UI elements updated with player data.");
+                // Tutaj można załadować domyślny widok, np. handleShowTournaments();
+                // Jeśli chcesz, aby domyślnie po zalogowaniu widoczne były turnieje, odkomentuj poniższą linię.
+                // handleShowTournaments();
             } else {
-                // To może oznaczać, że PlayerNavigationPanel.fxml nie ma fx:controller ustawionego
-                // lub został załadowany w sposób, który nie pozwala na pobranie kontrolera.
-                System.err.println("Nie udało się pobrać PlayerNavigationController z fx:include. " +
-                        "Sprawdź, czy PlayerNavigationPanel.fxml ma fx:controller.");
+                System.err.println("PlayerDashboard: Nie można zaktualizować UI; playerTopBarController jest null w updateUIWithPlayerInfo().");
             }
         } else {
-            // To może oznaczać, że fx:id="playerNavigationPanel" nie zostało poprawnie przypisane
-            // w PlayerDashboard.fxml lub ścieżka do PlayerNavigationPanel.fxml jest błędna.
-            System.err.println("playerNavigationPanel jest null w initialize(). Sprawdź fx:include w FXML.");
+            System.err.println("PlayerDashboard: Nie można zaktualizować UI; currentPlayer jest null w updateUIWithPlayerInfo().");
         }
     }
 
+    /**
+     * Obsługuje wyświetlanie widoku turniejów.
+     */
     @FXML
     public void handleShowTournaments() {
         if (currentPlayer == null) {
-            System.err.println("currentPlayer jest NULL w handleShowTournaments");
+            System.err.println("PlayerDashboard: currentPlayer jest NULL w handleTournaments! Nie można załadować turniejów.");
+            // Próba aktualizacji UI, jeśli gracz zostanie ustawiony później (np. przez setPlayer)
+            if (initialized && this.currentPlayer != null) {
+                System.out.println("PlayerDashboard: Ponawiam handleShowTournaments, ponieważ currentPlayer jest już dostępny.");
+                updateUIWithPlayerInfo(); // Upewnij się, że ten krok jest potrzebny i nie powoduje pętli
+                return;
+            }
             return;
         }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerTournaments.fxml"));
             Parent tournamentsView = loader.load();
-            PlayerTournaments tournamentsController = loader.getController();
-            tournamentsController.initData(currentPlayer);
+
+            Object controller = loader.getController();
+            if (controller instanceof PlayerTournaments tournamentsController) {
+                tournamentsController.initData(currentPlayer);
+                System.out.println("PlayerDashboard: Kontroler PlayerTournaments zainicjowany danymi gracza.");
+            } else {
+                System.err.println("PlayerDashboard: Kontroler dla PlayerTournaments.fxml nie jest instancją PlayerTournaments lub jest null!");
+            }
+
+            if (contentPane == null) {
+                System.err.println("PlayerDashboard: contentPane jest null! Nie można załadować widoku turniejów.");
+                return;
+            }
 
             contentPane.getChildren().setAll(tournamentsView);
-            // Ustawianie kotwic dla rozciągnięcia widoku na cały kontener
             AnchorPane.setTopAnchor(tournamentsView, 0.0);
             AnchorPane.setBottomAnchor(tournamentsView, 0.0);
             AnchorPane.setLeftAnchor(tournamentsView, 0.0);
             AnchorPane.setRightAnchor(tournamentsView, 0.0);
+            System.out.println("PlayerDashboard: Pomyślnie załadowano i ustawiono widok turniejów.");
 
         } catch (IOException e) {
-            System.err.println("Błąd podczas ładowania PlayerTournaments.fxml: " + e.getMessage());
+            System.err.println("PlayerDashboard: Krytyczny błąd podczas ładowania PlayerTournaments.fxml: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("PlayerDashboard: Nieoczekiwany błąd w handleShowTournaments: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // Możesz dodać więcej metod handleShowX(), np.
-    // @FXML
-    // public void handleShowProfile() {
-    //     if (currentPlayer == null) {
-    //         System.err.println("currentPlayer jest NULL w handleShowProfile");
-    //         return;
-    //     }
-    //     try {
-    //         FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerProfile.fxml"));
-    //         Parent profileView = loader.load();
-    //         PlayerProfileController profileController = loader.getController();
-    //         profileController.initData(currentPlayer); // Załóżmy, że masz taki kontroler
-    //         contentPane.getChildren().setAll(profileView);
-    //         AnchorPane.setTopAnchor(profileView, 0.0);
-    //         AnchorPane.setBottomAnchor(profileView, 0.0);
-    //         AnchorPane.setLeftAnchor(profileView, 0.0);
-    //         AnchorPane.setRightAnchor(profileView, 0.0);
-    //     } catch (IOException e) {
-    //         System.err.println("Błąd podczas ładowania PlayerProfile.fxml: " + e.getMessage());
-    //         e.printStackTrace();
-    //     }
-    // }
+    /**
+     * Obsługuje wyświetlanie widoku profilu gracza.
+     */
+    @FXML
+    public void handleShowProfile() {
+        if (currentPlayer == null) {
+            System.err.println("PlayerDashboard: currentPlayer jest NULL w handleShowProfile! Nie można załadować profilu.");
+            return;
+        }
 
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerProfile.fxml"));
+            Parent profileView = loader.load();
 
+            Object controller = loader.getController();
+            // Zakładam, że masz PlayerProfile.java i PlayerProfileController
+            // if (controller instanceof PlayerProfileController profileController) {
+            //     profileController.initData(currentPlayer); // Przekaż gracza do kontrolera profilu
+            //     System.out.println("PlayerDashboard: Kontroler PlayerProfile zainicjowany danymi gracza.");
+            // } else {
+            //     System.err.println("PlayerDashboard: Kontroler dla PlayerProfile.fxml nie jest instancją PlayerProfileController lub jest null!");
+            // }
+
+            if (contentPane == null) {
+                System.err.println("PlayerDashboard: contentPane jest null! Nie można załadować widoku profilu.");
+                return;
+            }
+
+            contentPane.getChildren().setAll(profileView);
+            AnchorPane.setTopAnchor(profileView, 0.0);
+            AnchorPane.setBottomAnchor(profileView, 0.0);
+            AnchorPane.setLeftAnchor(profileView, 0.0);
+            AnchorPane.setRightAnchor(profileView, 0.0);
+            System.out.println("PlayerDashboard: Pomyślnie załadowano i ustawiono widok profilu.");
+
+        } catch (IOException e) {
+            System.err.println("PlayerDashboard: Krytyczny błąd podczas ładowania PlayerProfile.fxml: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("PlayerDashboard: Nieoczekiwany błąd w handleShowProfile: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Uruchamia timer debugowania, który co 10 sekund loguje dane gracza.
+     */
     private void startDebugTimer() {
-        if (debugTimer != null) debugTimer.stop();
+        if (debugTimer != null) debugTimer.stop(); // Zatrzymaj poprzedni timer, jeśli istnieje
 
         debugTimer = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
             if (currentPlayer != null) {
-                System.out.println("DEBUG: Player: " + currentPlayer.getFirstname() + " " + currentPlayer.getLastname() +
+                System.out.println("DEBUG (PlayerDashboard): Player in debugTimer: " + currentPlayer.getFirstname() + " " + currentPlayer.getLastname() +
                         ", Ranking: " + currentPlayer.getRanking());
             } else {
-                System.out.println("DEBUG: currentPlayer is null");
+                System.out.println("DEBUG (PlayerDashboard): currentPlayer is null in debugTimer.");
             }
         }));
-        debugTimer.setCycleCount(Timeline.INDEFINITE);
-        debugTimer.play();
+        debugTimer.setCycleCount(Timeline.INDEFINITE); // Ustaw na nieskończoną liczbę cykli
+        debugTimer.play(); // Rozpocznij odtwarzanie timera
+    }
+
+    /**
+     * Metoda do sprzątania zasobów, np. zatrzymywania timerów, gdy Dashboard przestaje być aktywny.
+     * Wywoływana przez PlayerTopBar przed wylogowaniem.
+     */
+    public void cleanup() {
+        if (debugTimer != null) {
+            debugTimer.stop();
+            System.out.println("DEBUG (PlayerDashboard): Zatrzymano debugTimer.");
+        }
+        // Tutaj można dodać inne operacje czyszczenia, jeśli będą potrzebne
     }
 }

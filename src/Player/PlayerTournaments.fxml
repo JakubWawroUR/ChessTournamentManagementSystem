@@ -25,8 +25,8 @@
                     <Label fx:id="playerRankingLabel" text="Ranking: [Brak danych]" />
                 </VBox>
 
-                <TableView fx:id="tournamentTable" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="0" GridPane.rowIndex="1"> <columns>
-                    <TableColumn fx:id="nameColumn" prefWidth="215.0" text="Nazwa Turnieju" />
+                <TableView fx:id="tournamentTable"  prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="0" GridPane.rowIndex="1"> <columns>
+                    <TableColumn fx:id="nameColumn" prefWidth="215.0" text="Nazwa Turnieju"/>
                     <TableColumn fx:id="slotsInfoColumn" minWidth="2.0" prefWidth="215.0" text="Miejsca" />
                     <TableColumn fx:id="startDateColumn" prefWidth="215.0" text="Data rozpoczęcia" />
                     <TableColumn fx:id="endDateColumn" prefWidth="215.0" text="Data zakończenia" />

@@ -1,6 +1,8 @@
 package src.dao;
 
 import src.Connection.JDBC;
+import src.model.Player;
+import src.model.Role;
 import src.model.Tournament;
 import java.sql.*;
 import java.util.ArrayList;
@@ -255,5 +257,52 @@ public class TournamentDAO {
             e.printStackTrace();
             throw e;
         }
+    }
+    public List<Player> getRegisteredPlayersForTournament(int tournamentId) {
+        List<Player> players = new ArrayList<>();
+        String sql = "SELECT " +
+                "u.idusers, " +
+                "u.login, " +
+                "u.password, " +
+                "u.firstname, " +
+                "u.lastname, " +
+                "p.ranking, " +
+                "p.id AS players_table_id " +
+                "FROM tournament_players tp " +
+                "JOIN players p ON tp.player_id = p.id " +
+                "JOIN users u ON p.user_id = u.idusers " +
+                "WHERE tp.tournament_id = ?";
+
+        System.out.println("TournamentDAO: Wykonuję zapytanie SELECT graczy dla turnieju ID: " + tournamentId);
+
+        try (Connection conn = JDBC.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, tournamentId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                int playerCount = 0;
+                while (rs.next()) {
+                    Player player = new Player(
+                            rs.getInt("idusers"),
+                            rs.getString("login"),
+                            rs.getString("password"),
+                            rs.getString("firstname"), // Ta metoda jest dziedziczona z User
+                            rs.getString("lastname"),  // Ta metoda jest dziedziczona z User
+                            Role.GRACZ, // <--- TUTAJ DODAJESZ ROLĘ!
+                            rs.getInt("ranking"), // Zmieniona kolejność dla dopasowania konstruktora Player
+                            rs.getInt("players_table_id")
+                    );
+                    players.add(player);
+                    playerCount++;
+                    System.out.println("TournamentDAO: Pobrany gracz: " + player.getFirstName() + " " + player.getLastName() +
+                            " (PlayerTableId: " + player.getPlayersTableId() + ")");
+                }
+                System.out.println("TournamentDAO: Pomyślnie pobrano " + playerCount + " graczy dla turnieju ID " + tournamentId + ".");
+            }
+        } catch (SQLException e) {
+            System.err.println("Błąd podczas pobierania graczy dla turnieju ID " + tournamentId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return players;
     }
 }
