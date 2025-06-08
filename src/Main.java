@@ -27,7 +27,7 @@ public class Main extends Application {
         try { // <--- DODAJ BLOK TRY
             List<User> users = userDAO.getAllUsers(); // Linia 26 (lub jej odpowiednik po zmianach)
             for (User user : users) {
-                System.out.println(user.getFirstname() + " " + user.getLastname() + " " + user.getPassword() + " " + user.getRole());
+                System.out.println(user.getFirstName() + " " + user.getLastName() + " " + user.getPassword() + " " + user.getRole());
             }
         } catch (SQLException e) { // <--- DODAJ BLOK CATCH
             System.err.println("Błąd podczas pobierania użytkowników z bazy danych: " + e.getMessage());

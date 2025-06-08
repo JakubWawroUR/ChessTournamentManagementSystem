@@ -88,35 +88,39 @@ public class PlayerDAO {
 
     public List<Player> getPlayersInTournament(int tournamentId) throws SQLException {
         List<Player> players = new ArrayList<>();
-        // Zaktualizowane zapytanie SQL - pobieramy wszystkie dane potrzebne do konstruktora Player
-        String query = "SELECT p.idplayers, u.idusers, u.login, u.password, u.first_name, u.last_name, u.role, p.ranking " +
-                "FROM players p " +
-                "JOIN users u ON p.users_idusers = u.idusers " + // Zakładam, że players.users_idusers łączy się z users.idusers
-                "JOIN tournament_players tp ON p.idplayers = tp.players_idplayers " +
-                "WHERE tp.tournaments_idtournaments = ?";
+        // Poprawione zapytanie SQL:
+        // 1. Zmieniono 'p.idplayers' na 'p.id' (zakładając, że klucz główny tabeli 'players' to 'id')
+        // 2. Zmieniono 'p.users_idusers' na 'p.user_id' (zakładając 'user_id' w tabeli players/ranking)
+        // 3. Zmieniono 'tp.players_idplayers' na 'tp.player_id' (potwierdzone zdjęciem tournament_players)
+        // 4. Zmieniono 'tp.tournaments_idtournaments' na 'tp.tournament_id' (potwierdzone zdjęciem tournament_players)
+        // 5. Zmieniono 'first_name', 'last_name' na 'firstname', 'lastname' (potwierdzone zdjęciem users)
+        String query = "SELECT p.id, u.idusers, u.login, u.password, u.firstname, u.lastname, u.role, p.ranking " +
+                "FROM players p " + // Alias 'p' dla tabeli 'players' (lub 'ranking', jeśli to ta sama tabela)
+                "JOIN users u ON p.user_id = u.idusers " + // Połączenie gracza z użytkownikiem
+                "JOIN tournament_players tp ON p.id = tp.player_id " + // Połączenie gracza z turniejem
+                "WHERE tp.tournament_id = ?"; // Filtracja po ID turnieju
 
         try (Connection conn = JDBC.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            stmt.setInt(1, tournamentId); // Ustawienie ID turnieju
+            stmt.setInt(1, tournamentId);
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                // Pobieranie danych z ResultSet
                 int userId = rs.getInt("idusers");
                 String login = rs.getString("login");
                 String password = rs.getString("password");
-                String firstName = rs.getString("first_name");
-                String lastName = rs.getString("last_name");
-                // Konwersja Stringa roli z bazy danych na enum Role
-                Role role = Role.valueOf(rs.getString("role").toUpperCase()); // Zapewnij, że nazwy ról w DB pasują do nazw enum (np. "GRACZ")
+                String firstName = rs.getString("firstname"); // Poprawiono
+                String lastName = rs.getString("lastname");   // Poprawiono
+                Role role = Role.valueOf(rs.getString("role").toUpperCase());
 
-                int playersTableId = rs.getInt("idplayers"); // ID gracza z tabeli players
+                // Tutaj pobieramy ID z tabeli `players` (alias 'p'), które teraz nazywa się 'id'
+                int playersTableId = rs.getInt("id"); // Użyj "id", jeśli to klucz główny tabeli "players"
                 int ranking = rs.getInt("ranking");
 
-                // Tworzenie obiektu Player przy użyciu pełnego konstruktora
+                // Upewnij się, że konstruktor Player jest w stanie przyjąć te wszystkie argumenty
                 Player player = new Player(userId, login, password, firstName, lastName, role, playersTableId, ranking);
-                players.add(player); // Dodanie gracza do listy
+                players.add(player);
             }
         }
         return players;

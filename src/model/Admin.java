@@ -34,8 +34,8 @@ public class Admin extends User {
         return "Admin{" +
                 "id=" + getId() +
                 ", login='" + getLogin() + '\'' +
-                ", firstname='" + getFirstname() + '\'' +
-                ", lastname='" + getLastname() + '\'' +
+                ", firstname='" + getFirstName() + '\'' +
+                ", lastname='" + getLastName() + '\'' +
                 ", role=" + getRole() +
                 '}';
     }

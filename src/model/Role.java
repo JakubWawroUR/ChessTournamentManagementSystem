@@ -2,11 +2,17 @@ package src.model;
 
 public enum Role {
     GRACZ,
-    ADMINISTRATOR; // Tutaj musi być CAŁKOWICIE wielkimi literami
+    ADMINISTRATOR; // Zostawiamy ADMINISTRATOR, bo tak jest w bazie
 
     @Override
     public String toString() {
-        // To jest do celów wyświetlania, a nie do Role.valueOf()
+        // Ta metoda służy do wyświetlania roli w interfejsie użytkownika.
+        // Możesz tutaj zdecydować, jak ma być formatowany tekst.
+        if (this == ADMINISTRATOR) {
+            return "Administrator"; // Chcemy, aby ADMINISTRATOR wyświetlał się jako "Administrator"
+        }
+        // Dla GRACZ i innych ewentualnych przyszłych ról, zachowaj domyślne formatowanie
+        // np. GRACZ -> Gracz
         return name().charAt(0) + name().substring(1).toLowerCase();
     }
 }

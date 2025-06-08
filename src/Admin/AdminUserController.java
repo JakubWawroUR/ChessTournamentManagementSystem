@@ -74,8 +74,8 @@ public class AdminUserController implements Initializable {
         idColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getId()).asObject());
         loginColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getLogin()));
         passwordColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPassword()));
-        firstnameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFirstname()));
-        lastnameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getLastname()));
+        firstnameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getFirstName()));
+        lastnameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getLastName()));
         roleColumn.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getRole()));
 
         rankingColumn.setCellValueFactory(cellData -> {
@@ -186,8 +186,8 @@ public class AdminUserController implements Initializable {
         userIdField.setText(String.valueOf(user.getId()));
         loginField.setText(user.getLogin());
         passwordField.setText(user.getPassword());
-        firstnameField.setText(user.getFirstname());
-        lastnameField.setText(user.getLastname());
+        firstnameField.setText(user.getFirstName());
+        lastnameField.setText(user.getLastName());
         roleComboBox.setValue(user.getRole());
 
         if (user.getRole() == Role.GRACZ) {

@@ -204,8 +204,8 @@ public class UserDAO {
              PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, user.getLogin());
             ps.setString(2, user.getPassword());
-            ps.setString(3, user.getFirstname());
-            ps.setString(4, user.getLastname());
+            ps.setString(3, user.getFirstName());
+            ps.setString(4, user.getLastName());
             ps.setString(5, user.getRole().name());
             ps.setInt(6, user.getId());
             int affectedRows = ps.executeUpdate();

@@ -5,9 +5,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane; // Zakładam, że to pole jest używane, inaczej można usunąć
-import javafx.scene.layout.VBox;    // Zakładam, że to pole jest używane, inaczej można usunąć
+import javafx.scene.layout.GridPane; // Możesz usunąć, jeśli nie używasz jawnie w kodzie
+import javafx.scene.layout.VBox;    // Możesz usunąć, jeśli nie używasz jawnie w kodzie
 import src.model.Player;
+import src.model.Tournament; // Dodaj import dla obiektu Tournament
 
 import java.io.IOException;
 import java.net.URL;
@@ -32,7 +33,7 @@ public class PlayerDashboard implements Initializable {
      */
     public void setPlayer(Player player) {
         this.currentPlayer = player;
-        System.out.println("PlayerDashboard (setPlayer): Player data received: " + player.getFirstname() + " (currentPlayer set to " + (this.currentPlayer != null ? "NOT-NULL" : "NULL") + ").");
+        System.out.println("PlayerDashboard (setPlayer): Player data received: " + player.getFirstName() + " (currentPlayer set to " + (this.currentPlayer != null ? "NOT-NULL" : "NULL") + ").");
 
         // Jeśli initialize już się wykonało, zaktualizuj UI natychmiast
         if (initialized) {
@@ -55,7 +56,7 @@ public class PlayerDashboard implements Initializable {
         if (this.currentPlayer == null) {
             System.out.println("PlayerDashboard (initialize): currentPlayer jest NULL na początku initialize(). Jest to oczekiwane, jeśli setPlayer() zostanie wywołane później.");
         } else {
-            System.out.println("PlayerDashboard (initialize): currentPlayer jest NIE-NULL na początku initialize(): " + currentPlayer.getFirstname() + ". (Niespodziewane, ale dobre).");
+            System.out.println("PlayerDashboard (initialize): currentPlayer jest NIE-NULL na początku initialize(): " + currentPlayer.getFirstName() + ". (Niespodziewane, ale dobre).");
         }
 
         // Ustawienie referencji PlayerDashboard w PlayerNavigationController
@@ -95,7 +96,7 @@ public class PlayerDashboard implements Initializable {
     private void updateUIWithPlayerInfo() {
         if (currentPlayer != null) {
             if (playerTopBarController != null) {
-                playerTopBarController.setWelcomeText("Witaj, " + currentPlayer.getFirstname() + " " + currentPlayer.getLastname());
+                playerTopBarController.setWelcomeText("Witaj, " + currentPlayer.getFirstName() + " " + currentPlayer.getLastName());
                 playerTopBarController.setRankingText("Twój ranking: " + currentPlayer.getRanking());
                 System.out.println("PlayerDashboard: UI elements updated with player data.");
                 // Tutaj można załadować domyślny widok, np. handleShowTournaments();
@@ -132,7 +133,9 @@ public class PlayerDashboard implements Initializable {
             Object controller = loader.getController();
             if (controller instanceof PlayerTournaments tournamentsController) {
                 tournamentsController.initData(currentPlayer);
-                System.out.println("PlayerDashboard: Kontroler PlayerTournaments zainicjowany danymi gracza.");
+                // NOWOŚĆ: Przekaż referencję do PlayerDashboard do PlayerTournaments
+                tournamentsController.setPlayerDashboardController(this);
+                System.out.println("PlayerDashboard: Kontroler PlayerTournaments zainicjowany danymi gracza i referencją do PlayerDashboard.");
             } else {
                 System.err.println("PlayerDashboard: Kontroler dla PlayerTournaments.fxml nie jest instancją PlayerTournaments lub jest null!");
             }
@@ -159,6 +162,57 @@ public class PlayerDashboard implements Initializable {
     }
 
     /**
+     * NOWA METODA: Obsługuje wyświetlanie widoku informacji o konkretnym turnieju.
+     * Wywoływana przez PlayerTournaments, gdy użytkownik wybierze turniej.
+     * @param tournament Turniej, którego informacje mają być wyświetlone.
+     */
+    public void handleShowTournamentInfo(Tournament tournament) {
+        if (currentPlayer == null) {
+            System.err.println("PlayerDashboard: currentPlayer jest NULL w handleShowTournamentInfo! Nie można załadować informacji o turnieju.");
+            return;
+        }
+        if (tournament == null) {
+            System.err.println("PlayerDashboard: tournament jest NULL w handleShowTournamentInfo! Nie można załadować informacji o turnieju.");
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerTournamentInfo.fxml"));
+            Parent tournamentInfoView = loader.load();
+
+            Object controller = loader.getController();
+            if (controller instanceof PlayerTournamentInfo tournamentInfoController) {
+                tournamentInfoController.initData(tournament, currentPlayer);
+                // KLUCZOWE: Przekaż referencję do PlayerDashboard do PlayerTournamentInfo
+                tournamentInfoController.setPlayerDashboardController(this); // 'this' odnosi się do PlayerDashboard
+                System.out.println("PlayerDashboard: Kontroler PlayerTournamentInfo zainicjowany danymi turnieju, gracza i referencją do PlayerDashboard.");
+            } else {
+                System.err.println("PlayerDashboard: Kontroler dla PlayerTournamentInfo.fxml nie jest instancją PlayerTournamentInfo lub jest null!");
+            }
+
+            if (contentPane == null) {
+                System.err.println("PlayerDashboard: contentPane jest null! Nie można załadować widoku informacji o turnieju.");
+                return;
+            }
+
+            contentPane.getChildren().setAll(tournamentInfoView);
+            AnchorPane.setTopAnchor(tournamentInfoView, 0.0);
+            AnchorPane.setBottomAnchor(tournamentInfoView, 0.0);
+            AnchorPane.setLeftAnchor(tournamentInfoView, 0.0);
+            AnchorPane.setRightAnchor(tournamentInfoView, 0.0);
+            System.out.println("PlayerDashboard: Pomyślnie załadowano i ustawiono widok informacji o turnieju.");
+
+        } catch (IOException e) {
+            System.err.println("PlayerDashboard: Krytyczny błąd podczas ładowania PlayerTournamentInfo.fxml: " + e.getMessage());
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("PlayerDashboard: Nieoczekiwany błąd w handleShowTournamentInfo: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
      * Obsługuje wyświetlanie widoku profilu gracza.
      */
     @FXML
@@ -174,8 +228,10 @@ public class PlayerDashboard implements Initializable {
 
             Object controller = loader.getController();
             // Zakładam, że masz PlayerProfile.java i PlayerProfileController
+            // Jeśli PlayerProfileController będzie potrzebował referencji do PlayerDashboard, dodaj to tutaj:
             // if (controller instanceof PlayerProfileController profileController) {
-            //     profileController.initData(currentPlayer); // Przekaż gracza do kontrolera profilu
+            //     profileController.initData(currentPlayer);
+            //     profileController.setPlayerDashboardController(this); // Jeśli PlayerProfileController będzie mógł "wrócić"
             //     System.out.println("PlayerDashboard: Kontroler PlayerProfile zainicjowany danymi gracza.");
             // } else {
             //     System.err.println("PlayerDashboard: Kontroler dla PlayerProfile.fxml nie jest instancją PlayerProfileController lub jest null!");
@@ -210,7 +266,7 @@ public class PlayerDashboard implements Initializable {
 
         debugTimer = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
             if (currentPlayer != null) {
-                System.out.println("DEBUG (PlayerDashboard): Player in debugTimer: " + currentPlayer.getFirstname() + " " + currentPlayer.getLastname() +
+                System.out.println("DEBUG (PlayerDashboard): Player in debugTimer: " + currentPlayer.getFirstName() + " " + currentPlayer.getLastName() +
                         ", Ranking: " + currentPlayer.getRanking());
             } else {
                 System.out.println("DEBUG (PlayerDashboard): currentPlayer is null in debugTimer.");

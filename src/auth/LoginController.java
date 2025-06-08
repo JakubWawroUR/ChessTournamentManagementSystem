@@ -12,7 +12,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 import src.Player.PlayerDashboard;
-import src.Admin.AdminDashboard;
+import src.Admin.AdminDashboard; // Upewnij się, że AdminDashboard jest poprawnie zaimportowany i istnieje
 import src.dao.UserDAO;
 import src.model.Role;
 import src.model.User;
@@ -52,14 +52,22 @@ public class LoginController implements SceneSwitcher {
 
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerDashboard.fxml"));
 
-                    // *** KEEP THIS: Create PlayerDashboard instance and set it as controller ***
-                    PlayerDashboard playerDashboardController = new PlayerDashboard();
-                    loader.setController(playerDashboardController);
+                    // *** USUNIĘTO PROBLEMOWĄ LINIĘ: loader.setController(playerDashboardController); ***
+                    // Pozostawiamy loader.load(), który sam stworzy kontroler zdefiniowany w FXML
+                    Parent playerDashboardParent = loader.load(); // FXML jest ładowany, initialize() jest wywoływane tutaj
 
-                    Parent playerDashboardParent = loader.load(); // FXML is loaded, initialize() is called here
+                    // *** POBIERZ KONTROLER PO ZAŁADOWANIU FXML ***
+                    PlayerDashboard playerDashboardController = loader.getController();
 
-                    // *** NEW: Set player data AFTER loading and initialize() ***
-                    playerDashboardController.setPlayer(loggedPlayer); // Use a new setter method
+                    // *** Ustaw dane gracza PO załadowaniu i inicjalizacji kontrolera ***
+                    // Tutaj controller PlayerDashboard jest już zainicjalizowany przez FXMLLoader
+                    if (playerDashboardController != null) {
+                        playerDashboardController.setPlayer(loggedPlayer); // Użyj nowej metody setPlayer
+                        System.out.println("LoginController: PlayerDashboardController pobrany i dane gracza przekazane.");
+                    } else {
+                        System.err.println("LoginController: Błąd! PlayerDashboardController jest NULL po załadowaniu FXML. Sprawdź fx:controller w PlayerDashboard.fxml!");
+                    }
+
 
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                     stage.setScene(new Scene(playerDashboardParent));
@@ -70,10 +78,17 @@ public class LoginController implements SceneSwitcher {
                     System.out.println("Zalogowano jako Administrator: " + loggedUser.getLogin());
 
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Admin/AdminDashboard.fxml"));
-                    AdminDashboard adminDashboard = new AdminDashboard();
-                    loader.setController(adminDashboard);
-                    Parent adminDashboardParent = loader.load();
-                    adminDashboard.setAdmin((Admin) loggedUser); // Assuming you'd have a similar setAdmin method
+                    // DLA ADMIN DASHBOARD RÓWNIEŻ ZMIEŃ:
+                    // Zamiast: AdminDashboard adminDashboard = new AdminDashboard(); loader.setController(adminDashboard);
+                    Parent adminDashboardParent = loader.load(); // Niech FXML sam stworzy kontroler
+                    AdminDashboard adminDashboard = loader.getController(); // Pobierz kontroler po załadowaniu
+
+                    if (adminDashboard != null) {
+                        adminDashboard.setAdmin((Admin) loggedUser); // Assuming you'd have a similar setAdmin method
+                    } else {
+                        System.err.println("LoginController: Błąd! AdminDashboard jest NULL po załadowaniu FXML. Sprawdź fx:controller w AdminDashboard.fxml!");
+                    }
+
 
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                     stage.setScene(new Scene(adminDashboardParent));
