@@ -1,4 +1,4 @@
-// W pliku src/dao/UserDAO.java
+// src/dao/UserDAO.java
 package src.dao;
 
 import javafx.collections.FXCollections;
@@ -17,20 +17,27 @@ import java.sql.Statement;
 
 public class UserDAO {
 
+    // Nowe stałe wartości dla domyślnych statystyk
+    private static final int DEFAULT_RANKING = 1000;
+    private static final int DEFAULT_WINS = 0;
+    private static final int DEFAULT_DRAWS = 0;
+    private static final int DEFAULT_LOSSES = 0;
+    private static final int DEFAULT_GAMES_PLAYED = 0;
+
     // Metoda do rejestracji nowego użytkownika (może być graczem)
     public boolean registerUser(String login, String password, String firstname, String lastname, Role role) throws SQLException {
-        try (Connection conn = JDBC.getConnection()) { // Zamykane automatycznie
+        try (Connection conn = JDBC.getConnection()) {
             conn.setAutoCommit(false); // Rozpocznij transakcję
 
             if (isUserExists(login, conn)) {
-                conn.rollback(); // Wycofaj transakcję, jeśli login już istnieje
+                conn.rollback();
                 return false;
             }
 
             String insertUserQuery = "INSERT INTO users (login, password, firstname, lastname, role) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertUserQuery, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, login);
-                ps.setString(2, password); // Pamiętaj o haszowaniu haseł w prawdziwej aplikacji!
+                ps.setString(2, password);
                 ps.setString(3, firstname);
                 ps.setString(4, lastname);
                 ps.setString(5, role.name());
@@ -46,20 +53,20 @@ public class UserDAO {
                         int userId = generatedKeys.getInt(1);
                         if (role == Role.GRACZ) {
                             PlayerDAO playerDAO = new PlayerDAO();
-                            // ZMIANA TUTAJ: Przekazujemy istniejące połączenie 'conn'
-                            playerDAO.addPlayerDetails(userId, 1000, conn); // Domyślny ranking
+                            // Przekazujemy wszystkie domyślne statystyki
+                            playerDAO.addPlayerDetails(userId, DEFAULT_RANKING, conn);
                             System.out.println("Nowy gracz (user_id: " + userId + ") dodany do tabeli players.");
                         }
-                        conn.commit(); // Zatwierdź transakcję, jeśli wszystko poszło ok
+                        conn.commit();
                         return true;
                     } else {
-                        conn.rollback(); // Wycofaj, jeśli brak ID
+                        conn.rollback();
                         throw new SQLException("Tworzenie użytkownika nie powiodło się, brak wygenerowanego ID.");
                     }
                 }
             } catch (SQLException e) {
-                conn.rollback(); // Wycofaj transakcję w przypadku błędu
-                throw e; // Rzuć wyjątek, aby kontroler go obsłużył
+                conn.rollback();
+                throw e;
             }
         }
     }
@@ -80,7 +87,9 @@ public class UserDAO {
 
     // Metoda do logowania i pobierania pełnego obiektu User.
     public User loginUser(String login, String password) throws SQLException {
-        String query = "SELECT u.idusers, u.login, u.password, u.firstname, u.lastname, u.role, p.id AS players_table_id, p.ranking " +
+        // Zaktualizowano SELECT, aby pobierał wins, draws, losses, games_played
+        String query = "SELECT u.idusers, u.login, u.password, u.firstname, u.lastname, u.role, " +
+                "p.id AS players_table_id, p.ranking, p.wins, p.draws, p.losses, p.games_played " +
                 "FROM users u " +
                 "LEFT JOIN players p ON u.idusers = p.user_id " +
                 "WHERE u.login = ? AND u.password = ?";
@@ -106,38 +115,48 @@ public class UserDAO {
                         int playersTableId = rs.getInt("players_table_id");
                         boolean isPlayersTableIdNull = rs.wasNull(); // Sprawdź, czy players_table_id było NULL
 
-                        Integer ranking = rs.getInt("ranking"); // Pobierz ranking
-                        if (rs.wasNull()) {
-                            ranking = null;
-                        }
+                        int ranking = rs.getInt("ranking"); // Próba pobrania jako int
+                        boolean isRankingNull = rs.wasNull(); // Sprawdzenie, czy faktycznie było null
+                        int wins = rs.getInt("wins"); // Nowe
+                        boolean isWinsNull = rs.wasNull();
+                        int draws = rs.getInt("draws"); // Nowe
+                        boolean isDrawsNull = rs.wasNull();
+                        int losses = rs.getInt("losses"); // Nowe
+                        boolean isLossesNull = rs.wasNull();
+                        int gamesPlayed = rs.getInt("games_played"); // Nowe
+                        boolean isGamesPlayedNull = rs.wasNull();
 
                         // Jeśli rekord gracza nie istnieje w tabeli 'players', dodaj go
-                        // Sprawdź, czy playersTableId jest 0 lub null, bo to wskazuje na brak rekordu w 'players'
-                        if (isPlayersTableIdNull || playersTableId == 0) { // playersTableId == 0 dla int oznacza brak wartości
+                        if (isPlayersTableIdNull || playersTableId == 0) {
                             System.out.println("Zalogowany użytkownik (ID: " + idusers + ", Rola: " + userRole + ") nie posiada rekordu w tabeli 'players'. Dodaję automatycznie.");
                             PlayerDAO playerDAO = new PlayerDAO();
                             // Używamy samodzielnego połączenia dla tej operacji, bo loginUser nie jest transakcyjny
-                            playerDAO.addPlayerDetails(idusers, 1000); // Domyślny ranking
+                            playerDAO.addPlayerDetails(idusers, DEFAULT_RANKING); // Dodaje z domyślnymi statystykami (0)
                             Integer newPlayersTableId = playerDAO.getPlayersTableIdByUserId(idusers);
                             if (newPlayersTableId != null) {
                                 playersTableId = newPlayersTableId;
+                                // Po dodaniu, wszystkie statystyki gracza powinny być domyślne (0)
+                                ranking = DEFAULT_RANKING;
+                                wins = DEFAULT_WINS;
+                                draws = DEFAULT_DRAWS;
+                                losses = DEFAULT_LOSSES;
+                                gamesPlayed = DEFAULT_GAMES_PLAYED;
                                 System.out.println("Dodano i ustawiono players.id: " + playersTableId);
                             } else {
                                 System.err.println("Krytyczny błąd: Nie udało się pobrać nowo utworzonego players.id dla user_id: " + idusers);
                                 return null;
                             }
-                            // Ranking powinien teraz istnieć w bazie, więc pobierz go ponownie
-                            ranking = playerDAO.getPlayerRanking(idusers);
-                            if (ranking == null) { // Fallback, jeśli getPlayerRanking zwróci null
-                                ranking = 1000;
-                            }
                         } else {
-                            // Jeśli rekord gracza istnieje, ale ranking z bazy był NULL, przypisz domyślny
-                            if (ranking == null) {
-                                ranking = 1000;
-                            }
+                            // Jeśli rekord gracza istnieje, ale niektóre statystyki były NULL, przypisz domyślne
+                            if (isRankingNull) ranking = DEFAULT_RANKING;
+                            if (isWinsNull) wins = DEFAULT_WINS;
+                            if (isDrawsNull) draws = DEFAULT_DRAWS;
+                            if (isLossesNull) losses = DEFAULT_LOSSES;
+                            if (isGamesPlayedNull) gamesPlayed = DEFAULT_GAMES_PLAYED;
                         }
-                        return new Player(idusers, userLogin, userPassword, userFirstname, userLastname, userRole, playersTableId, ranking.intValue());
+                        // Użyj pełnego konstruktora Player z 12 argumentami
+                        return new Player(idusers, userLogin, userPassword, userFirstname, userLastname, userRole,
+                                playersTableId, ranking, wins, draws, losses, gamesPlayed);
                     } else if (userRole == Role.ADMINISTRATOR) {
                         return new Admin(idusers, userLogin, userPassword, userFirstname, userLastname, userRole);
                     } else {
@@ -152,7 +171,9 @@ public class UserDAO {
     // Metoda do pobierania listy wszystkich użytkowników
     public ObservableList<User> getAllUsers() throws SQLException {
         ObservableList<User> userList = FXCollections.observableArrayList();
-        String query = "SELECT u.idusers, u.login, u.password, u.firstname, u.lastname, u.role, p.id AS players_table_id, p.ranking " +
+        // Zaktualizowano SELECT, aby pobierał wins, draws, losses, games_played
+        String query = "SELECT u.idusers, u.login, u.password, u.firstname, u.lastname, u.role, " +
+                "p.id AS players_table_id, p.ranking, p.wins, p.draws, p.losses, p.games_played " +
                 "FROM users u " +
                 "LEFT JOIN players p ON u.idusers = p.user_id";
 
@@ -171,21 +192,34 @@ public class UserDAO {
 
                 if (role == Role.GRACZ) {
                     int playersTableId = rs.getInt("players_table_id");
-                    // Używamy rs.wasNull() dla obu, bo ranking też może być null
                     boolean isPlayersTableIdNull = rs.wasNull();
-                    int ranking = rs.getInt("ranking"); // Próba pobrania jako int
-                    boolean isRankingNull = rs.wasNull(); // Sprawdzenie, czy faktycznie było null
+
+                    int ranking = rs.getInt("ranking");
+                    boolean isRankingNull = rs.wasNull();
+                    int wins = rs.getInt("wins");
+                    boolean isWinsNull = rs.wasNull();
+                    int draws = rs.getInt("draws");
+                    boolean isDrawsNull = rs.wasNull();
+                    int losses = rs.getInt("losses");
+                    boolean isLossesNull = rs.wasNull();
+                    int gamesPlayed = rs.getInt("games_played");
+                    boolean isGamesPlayedNull = rs.wasNull();
+
 
                     if (isPlayersTableIdNull || playersTableId == 0) {
-                        System.err.println("Ostrzeżenie: Gracz (ID: " + idusers + ", Login: " + login + ") istnieje w 'users', ale brakuje rekordu w 'players'.");
-                        // Zwróć podstawowy obiekt User, jeśli nie ma pełnych danych gracza
+                        System.err.println("Ostrzeżenie: Gracz (ID: " + idusers + ", Login: " + login + ") istnieje w 'users', ale brakuje rekordu w 'players'. Dodaję jako podstawowego użytkownika.");
                         userList.add(new User(idusers, login, password, firstname, lastname, role));
                     } else {
-                        // Jeśli ranking był null w bazie, ustaw domyślną wartość (np. 1000)
-                        if (isRankingNull) {
-                            ranking = 1000;
-                        }
-                        userList.add(new Player(idusers, login, password, firstname, lastname, role, playersTableId, ranking));
+                        // Jeśli któreś ze statystyk były null w bazie, ustaw domyślne
+                        if (isRankingNull) ranking = DEFAULT_RANKING;
+                        if (isWinsNull) wins = DEFAULT_WINS;
+                        if (isDrawsNull) draws = DEFAULT_DRAWS;
+                        if (isLossesNull) losses = DEFAULT_LOSSES;
+                        if (isGamesPlayedNull) gamesPlayed = DEFAULT_GAMES_PLAYED;
+
+                        // Użyj pełnego konstruktora Player z 12 argumentami
+                        userList.add(new Player(idusers, login, password, firstname, lastname, role,
+                                playersTableId, ranking, wins, draws, losses, gamesPlayed));
                     }
                 } else if (role == Role.ADMINISTRATOR) {
                     userList.add(new Admin(idusers, login, password, firstname, lastname, role));
@@ -220,7 +254,7 @@ public class UserDAO {
         String deleteUserQuery = "DELETE FROM users WHERE idusers = ?";
 
         try (Connection conn = JDBC.getConnection()) {
-            conn.setAutoCommit(false); // Rozpocznij transakcję
+            conn.setAutoCommit(false);
 
             // Pobierz rolę użytkownika
             String roleString = null;
@@ -248,16 +282,15 @@ public class UserDAO {
                 int affectedRows = psDeleteUser.executeUpdate();
 
                 if (affectedRows > 0) {
-                    conn.commit(); // Zatwierdź transakcję
+                    conn.commit();
                     return true;
                 } else {
-                    conn.rollback(); // Wycofaj, jeśli użytkownik nie został usunięty
+                    conn.rollback();
                     return false;
                 }
             }
         } catch (SQLException e) {
-            // Wycofaj transakcję w przypadku wyjątku
-            throw e; // Przekaż wyjątek dalej
+            throw e;
         }
     }
 }

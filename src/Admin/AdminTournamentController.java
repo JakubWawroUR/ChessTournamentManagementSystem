@@ -3,25 +3,31 @@ package src.Admin;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.DatePicker;
+// import javafx.scene.control.DatePicker; // Już nie potrzebujemy, skoro usunęliśmy z FXML i nie używamy do UI input
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import src.dao.TournamentDAO;
 import src.model.Tournament;
 
+import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDate; // Nadal potrzebne do formatowania dat pobranych z modelu
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -29,53 +35,87 @@ import java.util.ResourceBundle;
 
 public class AdminTournamentController implements Initializable {
 
-    // Poprawiono z userTable na tournamentTable
     @FXML private TableView<Tournament> tournamentTable;
     @FXML private TableColumn<Tournament, Integer> idColumn;
-    @FXML private TableColumn<Tournament, String> tournamentNameColumn; // Pozostawiono tournamentNameColumn jak w FXML
+    @FXML private TableColumn<Tournament, String> tournamentNameColumn;
     @FXML private TableColumn<Tournament, String> startDateColumn;
     @FXML private TableColumn<Tournament, String> endDateColumn;
-    @FXML private TableColumn<Tournament, Integer> maxSlotsColumn; // Dodano
-    @FXML private TableColumn<Tournament, Integer> freeSlotsColumn; // Dodano
+    @FXML private TableColumn<Tournament, Integer> maxSlotsColumn;
+    @FXML private TableColumn<Tournament, Integer> freeSlotsColumn;
+    @FXML private TableColumn<Tournament, String> statusColumn;
     @FXML private TableColumn<Tournament, Void> actionsColumn;
 
-    // Pola FXML dla formularza dodawania/edycji
     @FXML private TextField tournamentNameField;
-    @FXML private DatePicker startDatePicker;
-    @FXML private DatePicker endDatePicker;
-    @FXML private TextField maxSlotsField; // Dodano
-    @FXML private TextField freeSlotsField; // Dodano
+    // Usunięto: @FXML private DatePicker startDatePicker; // Brak w FXML
+    // Usunięto: @FXML private DatePicker endDatePicker;   // Brak w FXML
+    @FXML private TextField maxSlotsField;
+
     @FXML private Button addTournamentButton;
     @FXML private Button updateTournamentButton;
-    @FXML private Button cancelEditButton; // Będziesz potrzebować tego przycisku w FXML
+    @FXML private Button cancelEditButton;
+    @FXML private Button endTournamentButton;
     @FXML private TextField tournamentIdField;
 
     private ObservableList<Tournament> tournamentList;
     private TournamentDAO tournamentDAO;
 
-    // Formatter do konwersji String <-> LocalDate
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        tournamentDAO = new TournamentDAO();
+        this.tournamentDAO = new TournamentDAO();
 
-        // Ustawienie PropertyValueFactory dla kolumn tabeli
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
-        tournamentNameColumn.setCellValueFactory(new PropertyValueFactory<>("name")); // Zmieniono z tournamentName
+        tournamentNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
         startDateColumn.setCellValueFactory(new PropertyValueFactory<>("startDate"));
         endDateColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
-        maxSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("maxSlots")); // Dodano
-        freeSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("freeSlots")); // Dodano
-
+        maxSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("maxSlots"));
+        freeSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("freeSlots"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         setupActionsColumn();
 
         tournamentList = FXCollections.observableArrayList();
         loadTournamentDataFromDatabase();
         tournamentTable.setItems(tournamentList);
 
-        // Początkowy stan formularza (tryb dodawania)
+        tournamentTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && tournamentTable.getSelectionModel().getSelectedItem() != null) {
+                Tournament selectedTournament = tournamentTable.getSelectionModel().getSelectedItem();
+                handleShowTournamentMatches(selectedTournament);
+            }
+        });
+
+        tournamentTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                boolean isClosable = newSelection.getStatus().equals("ZAMKNIĘTY") || newSelection.getStatus().equals("W TRAKCIE");
+                endTournamentButton.setVisible(isClosable);
+                endTournamentButton.setManaged(isClosable);
+            } else {
+                endTournamentButton.setVisible(false);
+                endTournamentButton.setManaged(false);
+            }
+        });
+
         resetForm();
+    }
+
+    private void handleShowTournamentMatches(Tournament tournament) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("AdminGames.fxml"));
+            Parent root = loader.load();
+
+            AdminGames gamesController = loader.getController();
+            gamesController.setTournament(tournament);
+
+            Stage stage = new Stage();
+            stage.setTitle("Mecze turnieju: " + tournament.getName());
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        } catch (IOException e) {
+            showAlert(AlertType.ERROR, "Błąd", "Nie udało się załadować widoku meczów: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private void setupActionsColumn() {
@@ -113,21 +153,20 @@ public class AdminTournamentController implements Initializable {
     private void handleEditRequest(Tournament tournament) {
         tournamentIdField.setText(String.valueOf(tournament.getId()));
         tournamentNameField.setText(tournament.getName());
-        // Konwersja String na LocalDate
-        startDatePicker.setValue(LocalDate.parse(tournament.getStartDate(), DATE_FORMATTER));
-        endDatePicker.setValue(LocalDate.parse(tournament.getEndDate(), DATE_FORMATTER));
+        // Usunięto: startDatePicker.setValue(LocalDate.parse(tournament.getStartDate(), DATE_FORMATTER));
+        // Usunięto: endDatePicker.setValue(LocalDate.parse(tournament.getEndDate(), DATE_FORMATTER));
         maxSlotsField.setText(String.valueOf(tournament.getMaxSlots()));
-        freeSlotsField.setText(String.valueOf(tournament.getFreeSlots()));
 
         addTournamentButton.setVisible(false);
         addTournamentButton.setManaged(false);
         updateTournamentButton.setVisible(true);
         updateTournamentButton.setManaged(true);
-        // Upewnij się, że cancelEditButton jest widoczny i zarządzany
         if (cancelEditButton != null) {
             cancelEditButton.setVisible(true);
             cancelEditButton.setManaged(true);
         }
+        endTournamentButton.setVisible(false);
+        endTournamentButton.setManaged(false);
 
         showAlert(AlertType.INFORMATION, "Edycja turnieju", "Edytujesz turniej: " + tournament.getName());
     }
@@ -142,42 +181,77 @@ public class AdminTournamentController implements Initializable {
 
         int id = Integer.parseInt(tournamentIdField.getText());
         String name = tournamentNameField.getText();
-        LocalDate startDate = startDatePicker.getValue();
-        LocalDate endDate = endDatePicker.getValue();
-        int maxSlots;
-        int freeSlots;
+        // Usunięto: LocalDate startDate = startDatePicker.getValue();
+        // Usunięto: LocalDate endDate = endDatePicker.getValue();
+        int newMaxSlots;
 
-        // Walidacja liczb
         try {
-            maxSlots = Integer.parseInt(maxSlotsField.getText());
-            freeSlots = Integer.parseInt(freeSlotsField.getText());
+            newMaxSlots = Integer.parseInt(maxSlotsField.getText());
         } catch (NumberFormatException e) {
-            showAlert(AlertType.ERROR, "Błąd edycji", "Pola 'Maksymalna liczba miejsc' i 'Wolne miejsca' muszą być liczbami całkowitymi.");
+            showAlert(AlertType.ERROR, "Błąd edycji", "Pole 'Maksymalna liczba miejsc' musi być liczbą całkowitą.");
             return;
         }
 
-        if (name.isEmpty() || startDate == null || endDate == null) {
-            showAlert(AlertType.ERROR, "Błąd edycji", "Proszę wypełnić wszystkie pola.");
+        if (name.isEmpty()) { // Usunięto walidację dat, zostaje tylko nazwa
+            showAlert(AlertType.ERROR, "Błąd edycji", "Proszę wypełnić nazwę turnieju.");
             return;
         }
-        if (endDate.isBefore(startDate)) {
-            showAlert(AlertType.ERROR, "Błąd edycji", "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.");
-            return;
-        }
-        if (freeSlots > maxSlots) {
-            showAlert(AlertType.ERROR, "Błąd edycji", "Wolne miejsca nie mogą być większe niż maksymalna liczba miejsc.");
-            return;
-        }
-        if (freeSlots < 0 || maxSlots < 0) {
-            showAlert(AlertType.ERROR, "Błąd edycji", "Liczba miejsc nie może być ujemna.");
-            return;
-        }
+        // Usunięto: if (endDate.isBefore(startDate)) { ... } // Walidacja daty zakończenia względem daty rozpoczęcia
 
-        String formattedStartDate = startDate.format(DATE_FORMATTER);
-        String formattedEndDate = endDate.format(DATE_FORMATTER);
+        // Usunięto: String formattedStartDate = startDate.format(DATE_FORMATTER);
+        // Usunięto: String formattedEndDate = endDate.format(DATE_FORMATTER);
 
         try {
-            Tournament updatedTournament = new Tournament(id, name, formattedStartDate, formattedEndDate, maxSlots, freeSlots);
+            Tournament existingTournament = tournamentList.stream()
+                    .filter(t -> t.getId() == id)
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingTournament == null) {
+                showAlert(AlertType.ERROR, "Błąd edycji", "Nie znaleziono turnieju o podanym ID do aktualizacji.");
+                return;
+            }
+
+            // Pobieramy istniejące daty i status z obiektu existingTournament
+            String currentStartDate = existingTournament.getStartDate();
+            String currentEndDate = existingTournament.getEndDate();
+            String currentStatus = existingTournament.getStatus(); // Nadal potrzebujemy statusu
+
+            int currentFreeSlots = existingTournament.getFreeSlots();
+            int currentMaxSlots = existingTournament.getMaxSlots();
+
+
+            int registeredPlayersCount = currentMaxSlots - currentFreeSlots;
+
+            if (newMaxSlots < registeredPlayersCount) {
+                showAlert(AlertType.ERROR, "Błąd edycji",
+                        "Nowa maksymalna liczba miejsc (" + newMaxSlots + ") nie może być mniejsza niż obecna liczba zarejestrowanych graczy (" + registeredPlayersCount + ").");
+                return;
+            }
+
+            int newFreeSlots;
+            String newStatus = currentStatus;
+
+            if (newMaxSlots < currentMaxSlots) {
+                newFreeSlots = newMaxSlots - registeredPlayersCount;
+                if (newFreeSlots < 0) newFreeSlots = 0;
+
+                if (newFreeSlots == 0 && newStatus.equals("OTWARTY")) {
+                    newStatus = "ZAMKNIĘTY";
+                }
+            } else {
+                newFreeSlots = currentFreeSlots + (newMaxSlots - currentMaxSlots);
+
+                if (newStatus.equals("ZAMKNIĘTY") && newFreeSlots > 0) {
+                    newStatus = "OTWARTY";
+                }
+            }
+
+            newFreeSlots = Math.min(newFreeSlots, newMaxSlots);
+            newFreeSlots = Math.max(0, newFreeSlots);
+
+            // Tworzymy zaktualizowany obiekt turnieju, używając ZACHOWANYCH dat z existingTournament
+            Tournament updatedTournament = new Tournament(id, name, currentStartDate, currentEndDate, newMaxSlots, newFreeSlots, newStatus);
             tournamentDAO.updateTournament(updatedTournament);
 
             for (int i = 0; i < tournamentList.size(); i++) {
@@ -186,6 +260,7 @@ public class AdminTournamentController implements Initializable {
                     break;
                 }
             }
+            tournamentTable.refresh();
 
             showAlert(AlertType.INFORMATION, "Sukces", "Turniej '" + name + "' został pomyślnie zaktualizowany.");
             System.out.println("Turniej '" + name + "' został pomyślnie zaktualizowany.");
@@ -209,6 +284,7 @@ public class AdminTournamentController implements Initializable {
             try {
                 tournamentDAO.deleteTournament(tournament.getId());
                 tournamentList.remove(tournament);
+                tournamentTable.refresh();
 
                 showAlert(AlertType.INFORMATION, "Sukces", "Turniej '" + tournament.getName() + "' został pomyślnie usunięty.");
                 System.out.println("Turniej '" + tournament.getName() + "' został pomyślnie usunięty.");
@@ -225,44 +301,34 @@ public class AdminTournamentController implements Initializable {
     @FXML
     private void handleAddTournament() {
         String name = tournamentNameField.getText();
-        LocalDate startDate = startDatePicker.getValue();
-        LocalDate endDate = endDatePicker.getValue();
-        int maxSlots;
-        int freeSlots;
+        // Daty startu i końca są teraz automatycznie ustawiane, ponieważ nie ma pól UI
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = LocalDate.now().plusDays(3); // Przykładowo, turniej trwa 3 dni
 
-        // Walidacja liczb
+        int maxSlots;
+
         try {
             maxSlots = Integer.parseInt(maxSlotsField.getText());
-            freeSlots = Integer.parseInt(freeSlotsField.getText());
         } catch (NumberFormatException e) {
-            showAlert(AlertType.ERROR, "Błąd dodawania", "Pola 'Maksymalna liczba miejsc' i 'Wolne miejsca' muszą być liczbami całkowitymi.");
+            showAlert(AlertType.ERROR, "Błąd dodawania", "Pole 'Maksymalna liczba miejsc' musi być liczbą całkowitą.");
             return;
         }
 
-        if (name.isEmpty() || startDate == null || endDate == null) {
-            showAlert(AlertType.ERROR, "Błąd dodawania", "Proszę wypełnić wszystkie pola.");
+        if (name.isEmpty()) { // Usunięto walidację dat, zostaje tylko nazwa
+            showAlert(AlertType.ERROR, "Błąd dodawania", "Proszę wypełnić nazwę turnieju.");
             return;
         }
-        if (endDate.isBefore(startDate)) {
-            showAlert(AlertType.ERROR, "Błąd dodawania", "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia.");
-            return;
-        }
-        if (freeSlots > maxSlots) {
-            showAlert(AlertType.ERROR, "Błąd dodawania", "Wolne miejsca nie mogą być większe niż maksymalna liczba miejsc.");
-            return;
-        }
-        if (freeSlots < 0 || maxSlots < 0) {
-            showAlert(AlertType.ERROR, "Błąd dodawania", "Liczba miejsc nie może być ujemna.");
-            return;
-        }
+        // Usunięto: if (endDate.isBefore(startDate)) { ... } // Walidacja daty zakończenia względem daty rozpoczęcia, jeśli daty są auto
 
         String formattedStartDate = startDate.format(DATE_FORMATTER);
         String formattedEndDate = endDate.format(DATE_FORMATTER);
 
         try {
-            Tournament newTournament = new Tournament(name, formattedStartDate, formattedEndDate, maxSlots, freeSlots);
+            Tournament newTournament = new Tournament(name, formattedStartDate, formattedEndDate, maxSlots);
             tournamentDAO.addTournament(newTournament);
+
             tournamentList.add(newTournament);
+            tournamentTable.refresh();
 
             showAlert(AlertType.INFORMATION, "Sukces", "Turniej '" + name + "' został pomyślnie dodany.");
             System.out.println("Turniej '" + name + "' został pomyślnie dodany.");
@@ -284,10 +350,9 @@ public class AdminTournamentController implements Initializable {
     private void resetForm() {
         tournamentIdField.clear();
         tournamentNameField.clear();
-        startDatePicker.setValue(null);
-        endDatePicker.setValue(null);
+        // Usunięto: startDatePicker.setValue(null);
+        // Usunięto: endDatePicker.setValue(null);
         maxSlotsField.clear();
-        freeSlotsField.clear();
 
         addTournamentButton.setVisible(true);
         addTournamentButton.setManaged(true);
@@ -297,6 +362,8 @@ public class AdminTournamentController implements Initializable {
             cancelEditButton.setVisible(false);
             cancelEditButton.setManaged(false);
         }
+        endTournamentButton.setVisible(false);
+        endTournamentButton.setManaged(false);
     }
 
     private void loadTournamentDataFromDatabase() {
@@ -311,6 +378,44 @@ public class AdminTournamentController implements Initializable {
             System.err.println("Wystąpił błąd podczas ładowania danych turniejów z bazy danych:");
             e.printStackTrace();
             showAlert(AlertType.ERROR, "Błąd ładowania danych", "Nie udało się załadować danych turniejów z bazy danych. Sprawdź połączenie.");
+        }
+    }
+
+    @FXML
+    private void handleEndTournament() {
+        Tournament selectedTournament = tournamentTable.getSelectionModel().getSelectedItem();
+        if (selectedTournament == null) {
+            showAlert(AlertType.ERROR, "Błąd", "Proszę wybrać turniej do zakończenia.");
+            return;
+        }
+
+        if (!selectedTournament.getStatus().equals("ZAMKNIĘTY") && !selectedTournament.getStatus().equals("W TRAKCIE")) {
+            showAlert(AlertType.WARNING, "Błąd", "Możesz zakończyć tylko turniej, który jest 'ZAMKNIĘTY' lub 'W TRAKCIE'. Aktualny status: " + selectedTournament.getStatus());
+            return;
+        }
+
+        Alert confirmation = new Alert(AlertType.CONFIRMATION);
+        confirmation.setTitle("Potwierdź zakończenie turnieju");
+        confirmation.setHeaderText("Czy na pewno chcesz zakończyć turniej '" + selectedTournament.getName() + "'?");
+        confirmation.setContentText("Po zakończeniu turnieju, jego status zostanie zmieniony na 'ZAKOŃCZONY' i nie będzie można już zmieniać wyników meczów ani dodawać graczy.");
+
+        Optional<ButtonType> result = confirmation.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                tournamentDAO.updateTournamentStatus(selectedTournament.getId(), "ZAKOŃCZONY");
+                selectedTournament.setStatus("ZAKOŃCZONY");
+
+                tournamentTable.refresh();
+                resetForm();
+
+                showAlert(AlertType.INFORMATION, "Sukces", "Turniej '" + selectedTournament.getName() + "' został pomyślnie zakończony.");
+                System.out.println("Turniej '" + selectedTournament.getName() + "' został pomyślnie zakończony.");
+
+            } catch (SQLException e) {
+                showAlert(AlertType.ERROR, "Błąd bazy danych", "Wystąpił błąd podczas zakończenia turnieju: " + e.getMessage());
+                System.err.println("Błąd podczas zakończenia turnieju: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 

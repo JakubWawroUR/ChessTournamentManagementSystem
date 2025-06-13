@@ -13,11 +13,14 @@ import src.model.Player;
 import src.model.Tournament;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
-import javafx.scene.input.MouseButton; // DODANY IMPORT
+import javafx.scene.input.MouseButton;
+import javafx.scene.control.Alert; // Dodany import dla Alert
+import javafx.scene.control.ButtonType; // Dodany import dla ButtonType
 
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class PlayerTournaments implements Initializable {
@@ -29,13 +32,13 @@ public class PlayerTournaments implements Initializable {
     @FXML private TableColumn<Tournament, String> endDateColumn;
     @FXML private TableColumn<Tournament, Integer> freeSlotsColumn;
     @FXML private TableColumn<Tournament, Integer> maxSlotsColumn;
-    @FXML private TableColumn<Tournament, Void> registerColumn; // Kolumna dla przycisku
+    @FXML private TableColumn<Tournament, String> statusColumn; // Dodana kolumna statusu
+    @FXML private TableColumn<Tournament, Void> registerColumn;
 
     private TournamentDAO tournamentDAO;
     private ObservableList<Tournament> tournamentList;
     private Player currentPlayer;
 
-    // Referencja do kontrolera nadrzędnego (PlayerDashboard)
     private PlayerDashboard playerDashboardController;
 
     @Override
@@ -49,15 +52,15 @@ public class PlayerTournaments implements Initializable {
         endDateColumn.setCellValueFactory(new PropertyValueFactory<>("endDate"));
         freeSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("freeSlots"));
         maxSlotsColumn.setCellValueFactory(new PropertyValueFactory<>("maxSlots"));
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status")); // Ustawienie dla kolumny statusu
 
-        // KONFIGURACJA KOLUMNY Z PRZYCISKIEM ZAREJESTRUJ SIĘ
         registerColumn.setCellFactory(param -> new TableCell<Tournament, Void>() {
             private final Button registerButton = new Button("Zarejestruj się");
 
             {
                 registerButton.setOnAction(event -> {
                     Tournament tournament = getTableView().getItems().get(getIndex());
-                    handleRegisterForTournament(tournament); // Wywołaj metodę rejestracji dla konkretnego turnieju
+                    handleRegisterForTournament(tournament);
                 });
             }
 
@@ -68,40 +71,44 @@ public class PlayerTournaments implements Initializable {
                     setGraphic(null);
                 } else {
                     Tournament currentTournament = getTableView().getItems().get(getIndex());
+                    // Zabezpieczenie przed NullPointerException, jeśli currentPlayer jest jeszcze null
                     if (currentTournament != null && currentPlayer != null) {
                         try {
                             boolean isRegistered = tournamentDAO.isPlayerRegisteredForTournament(currentTournament.getId(), currentPlayer.getPlayersTableId());
-                            if (isRegistered || currentTournament.getFreeSlots() <= 0) {
-                                registerButton.setDisable(true); // Wyłącz przycisk
-                                if (isRegistered) {
-                                    registerButton.setText("Zarejestrowany");
-                                } else if (currentTournament.getFreeSlots() <= 0) {
-                                    registerButton.setText("Brak miejsc");
-                                }
-                            } else {
-                                registerButton.setDisable(false); // Włącz przycisk
+                            if (isRegistered) {
+                                registerButton.setDisable(true);
+                                registerButton.setText("Zarejestrowany");
+                            } else if (currentTournament.getFreeSlots() <= 0) {
+                                registerButton.setDisable(true);
+                                registerButton.setText("Brak miejsc");
+                            } else if (!currentTournament.getStatus().equals("OTWARTY")) { // Dodane sprawdzenie statusu
+                                registerButton.setDisable(true);
+                                registerButton.setText("Zamknięty");
+                            }
+                            else {
+                                registerButton.setDisable(false);
                                 registerButton.setText("Zarejestruj się");
                             }
                         } catch (SQLException e) {
                             System.err.println("Błąd sprawdzania statusu rejestracji: " + e.getMessage());
-                            registerButton.setDisable(true); // Wyłącz w przypadku błędu
+                            registerButton.setDisable(true);
                             registerButton.setText("Błąd");
+                            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie można sprawdzić statusu rejestracji. " + e.getMessage());
                         }
                     } else {
-                        registerButton.setDisable(true); // Wyłącz, jeśli dane niekompletne
-                        setGraphic(null); // Nie pokazuj przycisku
+                        registerButton.setDisable(true); // Wyłącz, jeśli brak danych gracza lub turnieju
+                        registerButton.setText("Brak danych");
                     }
                     setGraphic(registerButton);
                 }
             }
         });
-        // KONIEC KONFIGURACJI KOLUMNY Z PRZYCISKIEM
 
         tournamentsTable.setItems(tournamentList);
-
         loadTournaments(); // Początkowe ładowanie turniejów
+        // Ważne: Po initialize, initData(player) wywoła loadTournaments() ponownie
+        // Aby upewnić się, że przyciski są poprawne, możesz potrzebować odświeżenia tabeli po ustawieniu currentPlayer.
 
-        // *** PRZYWRÓCONA LOGIKA PODWÓJNEGO KLIKNIĘCIA DLA SZCZEGÓŁÓW TURNIEJU ***
         tournamentsTable.setOnMouseClicked(event -> {
             if (event.getButton().equals(MouseButton.PRIMARY) && event.getClickCount() == 2) {
                 Tournament selectedTournament = tournamentsTable.getSelectionModel().getSelectedItem();
@@ -111,13 +118,13 @@ public class PlayerTournaments implements Initializable {
                         playerDashboardController.handleShowTournamentInfo(selectedTournament);
                     } else {
                         System.err.println("PlayerTournaments: playerDashboardController jest NULL. Nie można wyświetlić informacji o turnieju po podwójnym kliknięciu.");
+                        showAlert(Alert.AlertType.ERROR, "Błąd", "Nie można wyświetlić szczegółów turnieju. Błąd wewnętrzny aplikacji.");
                     }
                 } else {
                     System.out.println("PlayerTournaments: Nie wybrano żadnego turnieju do wyświetlenia informacji (podwójne kliknięcie).");
                 }
             }
         });
-        // *** KONIEC PRZYWRÓCONEJ LOGIKI ***
     }
 
     /**
@@ -127,7 +134,8 @@ public class PlayerTournaments implements Initializable {
     public void initData(Player player) {
         this.currentPlayer = player;
         System.out.println("PlayerTournaments: Dane gracza otrzymane: " + player.getFirstName());
-        loadTournaments(); // Załaduj turnieje po otrzymaniu danych gracza, aby zaktualizować status rejestracji
+        // Odśwież turnieje, aby przyciski rejestracji odzwierciedlały status bieżącego gracza
+        loadTournaments();
     }
 
     // Setter dla referencji do PlayerDashboard
@@ -136,12 +144,17 @@ public class PlayerTournaments implements Initializable {
         System.out.println("PlayerTournaments: Referencja do PlayerDashboardController ustawiona.");
     }
 
-
     private void loadTournaments() {
-        List<Tournament> tournaments = tournamentDAO.getAllTournaments();
-        tournamentList.setAll(tournaments);
-        System.out.println("PlayerTournaments: Załadowano " + tournaments.size() + " turniejów.");
-        tournamentsTable.refresh(); // Odśwież tabelę, aby zaktualizować stan przycisków
+        try {
+            List<Tournament> tournaments = tournamentDAO.getAllTournaments();
+            tournamentList.setAll(tournaments);
+            System.out.println("PlayerTournaments: Załadowano " + tournaments.size() + " turniejów.");
+            tournamentsTable.refresh(); // Odśwież tabelę, aby zaktualizować stan przycisków
+        } catch (Exception e) {
+            System.err.println("PlayerTournaments: Błąd podczas ładowania turniejów: " + e.getMessage());
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Błąd ładowania", "Nie udało się załadować listy turniejów.");
+        }
     }
 
     /**
@@ -149,36 +162,55 @@ public class PlayerTournaments implements Initializable {
      * @param selectedTournament Turniej, w którym gracz chce się zarejestrować.
      */
     private void handleRegisterForTournament(Tournament selectedTournament) {
-        if (selectedTournament == null) {
-            System.out.println("PlayerTournaments: Nie wybrano turnieju do rejestracji.");
-            // Możesz wyświetlić alert
+        if (selectedTournament == null || currentPlayer == null) {
+            showAlert(Alert.AlertType.ERROR, "Błąd rejestracji", "Brak danych turnieju lub gracza. Spróbuj ponownie.");
             return;
         }
 
-        if (currentPlayer == null) {
-            System.err.println("PlayerTournaments: Brak danych bieżącego gracza. Nie można zarejestrować.");
-            // Możesz wyświetlić alert
-            return;
-        }
+        // Dodano potwierdzenie przed rejestracją
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Potwierdź rejestrację");
+        confirmAlert.setHeaderText("Rejestracja do turnieju: " + selectedTournament.getName());
+        confirmAlert.setContentText("Czy na pewno chcesz zarejestrować się w tym turnieju?");
+        Optional<ButtonType> result = confirmAlert.showAndWait();
 
-        try {
-            if (tournamentDAO.isPlayerRegisteredForTournament(selectedTournament.getId(), currentPlayer.getPlayersTableId())) {
-                System.out.println("PlayerTournaments: Gracz jest już zarejestrowany w tym turnieju.");
-                // Możesz pokazać alert
-            } else if (selectedTournament.getFreeSlots() <= 0) {
-                System.out.println("PlayerTournaments: Brak wolnych miejsc w turnieju.");
-                // Możesz pokazać alert
-            } else {
-                tournamentDAO.addPlayerToTournament(selectedTournament.getId(), currentPlayer.getPlayersTableId());
-                tournamentDAO.updateFreeSlots(selectedTournament.getId(), -1); // Zmniejsz wolne miejsca
-                System.out.println("PlayerTournaments: Pomyślnie zarejestrowano gracza w turnieju.");
-                loadTournaments(); // Odśwież listę turniejów (zaktualizuje przyciski)
-                // Możesz pokazać alert sukcesu
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                // Ta metoda już zawiera logikę sprawdzania statusu turnieju, wolnych miejsc i czy gracz już jest zapisany
+                Tournament updatedTournament = tournamentDAO.addPlayerToTournament(selectedTournament.getId(), currentPlayer.getPlayersTableId());
+
+                // Po pomyślnej rejestracji odśwież widok, aby pokazać zaktualizowane dane (wolne miejsca, status)
+                // Możesz zaktualizować tylko ten jeden turniej w ObservableList zamiast ładować wszystkie od nowa
+                for (int i = 0; i < tournamentList.size(); i++) {
+                    if (tournamentList.get(i).getId() == updatedTournament.getId()) {
+                        tournamentList.set(i, updatedTournament);
+                        break;
+                    }
+                }
+                tournamentsTable.refresh(); // Odśwież tabelę
+
+                showAlert(Alert.AlertType.INFORMATION, "Sukces", "Pomyślnie zarejestrowano w turnieju '" + selectedTournament.getName() + "'!");
+            } catch (IllegalStateException e) {
+                // Obsługa specyficznych błędów biznesowych (turniej zamknięty, pełny, gracz już zapisany)
+                showAlert(Alert.AlertType.WARNING, "Nie można zarejestrować", e.getMessage());
+                loadTournaments(); // Odśwież listę, aby przyciski odzwierciedlały aktualny stan
+            } catch (SQLException e) {
+                // Obsługa błędów bazy danych
+                showAlert(Alert.AlertType.ERROR, "Błąd bazy danych", "Wystąpił błąd podczas rejestracji: " + e.getMessage());
+                e.printStackTrace();
+            } catch (Exception e) {
+                // Ogólna obsługa innych nieprzewidzianych błędów
+                showAlert(Alert.AlertType.ERROR, "Wystąpił błąd", "Nieoczekiwany błąd podczas rejestracji: " + e.getMessage());
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            System.err.println("PlayerTournaments: Błąd podczas rejestracji w turnieju: " + e.getMessage());
-            e.printStackTrace();
-            // Pokaż alert błędu
         }
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

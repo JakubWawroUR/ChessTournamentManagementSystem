@@ -15,14 +15,10 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="768.0" prefWidth="1280.0"
-            xmlns="http://javafx.com/javafx/23.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="src.Admin.AdminUserController">
+<AnchorPane fx:id="mainBox" prefHeight="768.0" prefWidth="1280.0" stylesheets="@../assets/styles/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Admin.AdminUserController">
 
     <children>
-        <GridPane layoutX="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="14.0"
-                  AnchorPane.rightAnchor="14.0" AnchorPane.topAnchor="0.0">
+        <GridPane layoutX="14.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <columnConstraints>
                 <ColumnConstraints hgrow="ALWAYS" />
             </columnConstraints>
@@ -32,19 +28,17 @@
             </rowConstraints>
 
             <children>
-                <fx:include source="AdminTopBar.fxml" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <fx:include source="AdminTopBar.fxml" GridPane.columnIndex="0" GridPane.rowIndex="0" />
 
-                <HBox spacing="10.0" GridPane.rowIndex="1" GridPane.columnIndex="0"
-                      AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
-                      AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <HBox spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
 
-                    <fx:include source="NavigationPanel.fxml"/>
+                    <fx:include source="NavigationPanel.fxml" />
 
                     <AnchorPane HBox.hgrow="ALWAYS">
-                        <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <GridPane layoutX="-58.0" prefHeight="688.0" prefWidth="1078.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-58.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <columnConstraints>
-                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="992.0" minWidth="10.0" prefWidth="710.0" />
-                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="500.0" minWidth="0.0" prefWidth="282.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="992.0" minWidth="10.0" prefWidth="797.0" />
+                                <ColumnConstraints hgrow="SOMETIMES" maxWidth="500.0" minWidth="0.0" prefWidth="281.0" />
                             </columnConstraints>
                             <rowConstraints>
                                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
@@ -55,77 +49,80 @@
                                         <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
                                     </padding>
                                     <children>
-                                        <TextField fx:id="userIdField" visible="false" managed="false" />
+                                        <TextField fx:id="userIdField" managed="false" visible="false" />
 
-                                        <Label text="Login" />
+                                        <Label fx:id="formText" text="Login" />
                                         <TextField fx:id="loginField" prefHeight="25.0" prefWidth="312.0">
                                             <VBox.margin>
                                                 <Insets bottom="10.0" />
                                             </VBox.margin>
                                         </TextField>
 
-                                        <Label text="Hasło" />
+                                        <Label fx:id="formText" text="Hasło" />
                                         <PasswordField fx:id="passwordField" prefHeight="25.0" prefWidth="312.0">
                                             <VBox.margin>
                                                 <Insets bottom="10.0" />
                                             </VBox.margin>
                                         </PasswordField>
 
-                                        <Label text="Imię" />
+                                        <Label fx:id="formText" text="Imię" />
                                         <TextField fx:id="firstnameField" prefHeight="25.0" prefWidth="312.0">
                                             <VBox.margin>
                                                 <Insets bottom="10.0" />
                                             </VBox.margin>
                                         </TextField>
 
-                                        <Label text="Nazwisko" />
+                                        <Label fx:id="formText" text="Nazwisko" />
                                         <TextField fx:id="lastnameField" prefHeight="25.0" prefWidth="312.0">
                                             <VBox.margin>
                                                 <Insets bottom="10.0" />
                                             </VBox.margin>
                                         </TextField>
 
-                                        <Label text="Rola" />
+                                        <Label fx:id="formText" text="Rola" />
                                         <ComboBox fx:id="roleComboBox" prefWidth="312.0">
                                             <VBox.margin>
                                                 <Insets bottom="10.0" />
                                             </VBox.margin>
                                         </ComboBox>
 
-                                        <Label fx:id="rankingLabel" text="Ranking" visible="false" managed="false" />
-                                        <TextField fx:id="rankingField" prefHeight="25.0" prefWidth="312.0" visible="false" managed="false" >
+                                        <Label fx:id="rankingLabel" managed="false" text="Ranking" visible="false" />
+                                        <TextField fx:id="rankingField" managed="false" prefHeight="25.0" prefWidth="312.0" visible="false">
                                             <VBox.margin>
                                                 <Insets bottom="25.0" />
                                             </VBox.margin>
                                         </TextField>
                                         <HBox alignment="CENTER_LEFT" spacing="10.0">
                                             <Button fx:id="addEditUserButton" onAction="#handleAddUser" text="Dodaj Użytkownika" />
-                                            <Button fx:id="updateSaveUserButton" onAction="#handleUpdateUser" text="Zapisz Zmiany" visible="false" managed="false" />
-                                            <Button fx:id="clearFormButton" onAction="#resetForm" text="Wyczyść / Anuluj" visible="false" managed="false" />
+                                            <Button fx:id="updateSaveUserButton" managed="false" onAction="#handleUpdateUser" text="Zapisz Zmiany" visible="false" />
+                                            <Button fx:id="clearFormButton" managed="false" onAction="#resetForm" text="Wyczyść / Anuluj" visible="false" />
                                         </HBox>
                                     </children>
                                 </VBox>
 
-                                <VBox prefHeight="688.0" prefWidth="372.0" GridPane.columnIndex="0">
+                                <VBox prefHeight="688.0" prefWidth="791.0" GridPane.columnIndex="0">
                                     <HBox spacing="10.0" style="-fx-padding: 5 0 5 0;">
-                                        <Button fx:id="btnShowAdmins" text="Pokaż Administratorów"/>
-                                        <Button fx:id="btnShowPlayers" text="Pokaż Graczy"/>
+                                        <Button fx:id="btnShowAdmins" text="Pokaż Administratorów" />
+                                        <Button fx:id="btnShowPlayers" text="Pokaż Graczy" />
                                     </HBox>
 
-                                    <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
+                                    <TableView fx:id="userTable" prefHeight="542.0" prefWidth="800.0" VBox.vgrow="ALWAYS">
                                         <columns>
-                                            <TableColumn fx:id="idColumn" prefWidth="50.0" text="id"/>
-                                            <TableColumn fx:id="loginColumn" prefWidth="150.0" text="login"/>
-                                            <TableColumn fx:id="passwordColumn" prefWidth="150.0" text="password"/>
-                                            <TableColumn fx:id="firstnameColumn" prefWidth="150.0" text="firstname"/>
-                                            <TableColumn fx:id="lastnameColumn" prefWidth="150.0" text="lastname"/>
-                                            <TableColumn fx:id="roleColumn" prefWidth="100.0" text="role"/>
-                                            <TableColumn fx:id="rankingColumn" prefWidth="80.0" text="Ranking"/>
-                                            <TableColumn fx:id="actionsColumn" prefWidth="200.0" text="Operacje"/>
+                                            <TableColumn fx:id="idColumn" prefWidth="50.0" text="id" />
+                                            <TableColumn fx:id="loginColumn" prefWidth="150.0" text="login" />
+                                            <TableColumn fx:id="passwordColumn" prefWidth="150.0" text="password" />
+                                            <TableColumn fx:id="firstnameColumn" prefWidth="150.0" text="firstname" />
+                                            <TableColumn fx:id="lastnameColumn" prefWidth="150.0" text="lastname" />
+                                            <TableColumn fx:id="roleColumn" prefWidth="100.0" text="role" />
+                                            <TableColumn fx:id="rankingColumn" prefWidth="80.0" text="Ranking" />
+                                            <TableColumn fx:id="actionsColumn" prefWidth="200.0" text="Operacje" />
                                         </columns>
                                         <columnResizePolicy>
                                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                         </columnResizePolicy>
+                              <VBox.margin>
+                                 <Insets bottom="50.0" />
+                              </VBox.margin>
                                     </TableView>
                                 </VBox>
                             </children>

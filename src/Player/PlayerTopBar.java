@@ -1,77 +1,65 @@
+// src/Player/PlayerTopBar.java
 package src.Player;
 
 import javafx.fxml.FXML;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Text;
-import src.auth.Logout; // Import dla klasy Logout
-import java.io.IOException;
+import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent; // <--- Upewnij się, że masz ten import!
+import src.auth.Logout; // <--- Upewnij się, że masz ten import i klasa istnieje
 
-public class PlayerTopBar extends Logout { // Poprawne dziedziczenie
-    @FXML
-    private Text welcomeLabel; // ZMIEŃ TO: NAZWA MUSI PASOWAĆ DO FX:ID W FXML
-    @FXML
-    private Text rankingLabel; // ZMIEŃ TO: NAZWA MUSI PASOWAĆ DO FX:ID W FXML
-    @FXML // Dodaj @FXML do przycisku wylogowania, jeśli jest to Button, a nie Text
-    private Text logoutButton; // Przykład, jeśli masz Text jako przycisk wylogowania
+import java.io.IOException; // <--- Upewnij się, że masz ten import!
+import java.net.URL;
+import java.util.ResourceBundle;
 
-    private PlayerDashboard playerDashboardController; // Referencja do nadrzędnego kontrolera
+// Klasa MUSI DZIEDZICZYĆ Z Logout, aby super.logout(event) działało
+public class PlayerTopBar extends Logout implements Initializable { // <--- DODAJ "extends Logout"
 
-    /**
-     * Ustawia referencję do nadrzędnego kontrolera PlayerDashboard.
-     * Ta metoda jest wywoływana przez PlayerDashboard w jego metodzie initialize().
-     * @param controller Instancja PlayerDashboard.
-     */
-    public void setPlayerDashboardController(PlayerDashboard controller) {
-        this.playerDashboardController = controller;
-        System.out.println("PlayerTopBar: Otrzymano referencję do PlayerDashboardController: " + (controller != null));
-    }
+    @FXML private Label sceneTitleLabel;
 
-    /**
-     * Ustawia tekst powitalny wyświetlany na górnym pasku.
-     * @param text Tekst do wyświetlenia.
-     */
-    public void setWelcomeText(String text) {
-        if (welcomeLabel != null) { // TERAZ SPRAWDZAMY 'welcomeLabel'
-            welcomeLabel.setText(text);
-            System.out.println("PlayerTopBar: Ustawiono welcomeText: " + text); // Ten log może zostać, jest informacyjny
-        } else {
-            System.err.println("PlayerTopBar: welcomeLabel jest null! Nie można ustawić tekstu."); // Komunikat błędu też powinien wskazywać 'welcomeLabel'
-        }
-    }
+    private PlayerDashboard playerDashboardController;
 
-    /**
-     * Ustawia tekst rankingu wyświetlany na górnym pasku.
-     * @param text Tekst do wyświetlenia.
-     */
-    public void setRankingText(String text) {
-        if (rankingLabel != null) { // TERAZ SPRAWDZAMY 'rankingLabel'
-            rankingLabel.setText(text);
-            System.out.println("PlayerTopBar: Ustawiono rankingText: " + text); // Ten log może zostać
-        } else {
-            System.err.println("PlayerTopBar: rankingLabel jest null! Nie można ustawić tekstu."); // Komunikat błędu też powinien wskazywać 'rankingLabel'
-        }
-    }
-
-    /**
-     * Nadpisana metoda logout z klasy bazowej Logout.
-     * Jest wywoływana, gdy użytkownik kliknie przycisk wylogowania w TopBarze.
-     * Najpierw wywołuje czyszczenie zasobów w PlayerDashboard, a następnie przełącza scenę.
-     * @param event Zdarzenie myszy.
-     * @throws IOException Jeśli wystąpi błąd podczas ładowania FXML.
-     */
     @Override
-    @FXML // Ważne: FXML będzie wywoływał tę metodę!
-    public void logout(MouseEvent event) throws IOException {
-        // Najpierw poproś PlayerDashboard o posprzątanie (zatrzymanie timera)
-        if (playerDashboardController != null) {
-            System.out.println("PlayerTopBar: Wywołuję cleanup() na PlayerDashboard przed wylogowaniem.");
-            playerDashboardController.cleanup();
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        if (sceneTitleLabel != null) {
+            sceneTitleLabel.setText("Ładowanie...");
+        }
+        System.out.println("PlayerTopBar: initialize() finished.");
+    }
+
+    public void setPlayerDashboardController(PlayerDashboard playerDashboardController) {
+        this.playerDashboardController = playerDashboardController;
+        System.out.println("PlayerTopBar: PlayerDashboardController set.");
+    }
+
+    public void setSceneTitle(String title) {
+        if (sceneTitleLabel != null) {
+            sceneTitleLabel.setText(title);
         } else {
-            System.err.println("PlayerTopBar: Brak referencji do PlayerDashboardController. Nie można wywołać cleanup().");
+            System.err.println("PlayerTopBar: sceneTitleLabel is null! Cannot set scene title.");
+        }
+    }
+
+    /**
+     * Metoda obsługująca wylogowanie użytkownika.
+     * MUSI PRZYJMOWAĆ MouseEvent, aby pasowała do onMouseClicked z FXML.
+     * @param event Zdarzenie myszy, które wywołało akcję.
+     */
+    @FXML
+    private void handleLogout(MouseEvent event) { // <--- ZMIEŃ SYGNATURĘ NA TĘ WERSJĘ!
+        System.out.println("PlayerTopBar: Obsługa wylogowania rozpoczyna się...");
+
+        if (playerDashboardController != null) {
+            playerDashboardController.cleanup(); // Wywołaj metodę sprzątającą w Dashboardzie
+            System.out.println("PlayerTopBar: Wywołano cleanup() w PlayerDashboard.");
         }
 
-        // Następnie wywołaj oryginalną logikę wylogowania z klasy bazowej Logout
-        super.logout(event);
-        System.out.println("PlayerTopBar: Wywołano super.logout() i przełączono scenę.");
+        try {
+            // Wywołaj metodę logout z klasy bazowej (Logout)
+            super.logout(event); // <--- DODAJ TO WYWOŁANIE
+            System.out.println("PlayerTopBar: Wywołano super.logout(event). Przekierowanie powinno nastąpić.");
+        } catch (IOException e) {
+            System.err.println("PlayerTopBar: Błąd podczas wylogowywania (przekierowania): " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

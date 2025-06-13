@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class NavigationPanelController {
+public class NavigationPanel {
 
     @FXML
     private Text usersText;

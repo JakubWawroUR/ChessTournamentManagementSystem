@@ -12,7 +12,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 import src.Player.PlayerDashboard;
-import src.Admin.AdminDashboard; // Upewnij się, że AdminDashboard jest poprawnie zaimportowany i istnieje
+import src.Admin.AdminDashboard; // Nadal potrzebne, bo ładujemy ten FXML
 import src.dao.UserDAO;
 import src.model.Role;
 import src.model.User;
@@ -51,23 +51,18 @@ public class LoginController implements SceneSwitcher {
                     System.out.println("Zalogowano jako Gracz: " + loggedPlayer.getLogin() + " (ID: " + loggedPlayer.getId() + ", PlayersTableId: " + loggedPlayer.getPlayersTableId() + ")");
 
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Player/PlayerDashboard.fxml"));
+                    Parent playerDashboardParent = loader.load();
 
-                    // *** USUNIĘTO PROBLEMOWĄ LINIĘ: loader.setController(playerDashboardController); ***
-                    // Pozostawiamy loader.load(), który sam stworzy kontroler zdefiniowany w FXML
-                    Parent playerDashboardParent = loader.load(); // FXML jest ładowany, initialize() jest wywoływane tutaj
-
-                    // *** POBIERZ KONTROLER PO ZAŁADOWANIU FXML ***
                     PlayerDashboard playerDashboardController = loader.getController();
 
-                    // *** Ustaw dane gracza PO załadowaniu i inicjalizacji kontrolera ***
-                    // Tutaj controller PlayerDashboard jest już zainicjalizowany przez FXMLLoader
                     if (playerDashboardController != null) {
-                        playerDashboardController.setPlayer(loggedPlayer); // Użyj nowej metody setPlayer
+                        playerDashboardController.setPlayer(loggedPlayer);
                         System.out.println("LoginController: PlayerDashboardController pobrany i dane gracza przekazane.");
                     } else {
                         System.err.println("LoginController: Błąd! PlayerDashboardController jest NULL po załadowaniu FXML. Sprawdź fx:controller w PlayerDashboard.fxml!");
+                        showAlert(Alert.AlertType.ERROR, "Błąd aplikacji", "Nie można załadować panelu gracza. Skontaktuj się z administratorem.");
+                        return;
                     }
-
 
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
                     stage.setScene(new Scene(playerDashboardParent));
@@ -77,22 +72,25 @@ public class LoginController implements SceneSwitcher {
                 } else if (loggedUser.getRole() == Role.ADMINISTRATOR) {
                     System.out.println("Zalogowano jako Administrator: " + loggedUser.getLogin());
 
+                    // *** SPRAWDŹ TUTAJ! Upewnij się, że ładujesz AdminDashboard.fxml ***
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/Admin/AdminDashboard.fxml"));
-                    // DLA ADMIN DASHBOARD RÓWNIEŻ ZMIEŃ:
-                    // Zamiast: AdminDashboard adminDashboard = new AdminDashboard(); loader.setController(adminDashboard);
-                    Parent adminDashboardParent = loader.load(); // Niech FXML sam stworzy kontroler
-                    AdminDashboard adminDashboard = loader.getController(); // Pobierz kontroler po załadowaniu
+                    Parent adminDashboardParent = loader.load(); // Tu ładujemy dashboard!
 
-                    if (adminDashboard != null) {
-                        adminDashboard.setAdmin((Admin) loggedUser); // Assuming you'd have a similar setAdmin method
+                    AdminDashboard adminDashboardController = loader.getController();
+
+                    if (adminDashboardController != null) {
+                        adminDashboardController.setAdmin((Admin) loggedUser); // Przekazujemy dane admina do dashboardu
+                        System.out.println("LoginController: AdminDashboardController pobrany i dane administratora przekazane.");
                     } else {
                         System.err.println("LoginController: Błąd! AdminDashboard jest NULL po załadowaniu FXML. Sprawdź fx:controller w AdminDashboard.fxml!");
+                        showAlert(Alert.AlertType.ERROR, "Błąd aplikacji", "Nie można załadować panelu administratora. Skontaktuj się z administratorem.");
+                        return;
                     }
 
-
                     Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                    stage.setScene(new Scene(adminDashboardParent));
+                    stage.setScene(new Scene(adminDashboardParent)); // Ustawiamy scenę z dashboardem
                     stage.show();
+                    System.out.println("LoginController: Przełączono na AdminDashboard.");
 
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Błąd roli", "Nieznana rola użytkownika.");
@@ -102,6 +100,9 @@ public class LoginController implements SceneSwitcher {
             }
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Błąd bazy danych", "Wystąpił błąd podczas logowania: " + e.getMessage());
+            e.printStackTrace();
+        } catch (IOException e) {
+            showAlert(Alert.AlertType.ERROR, "Błąd ładowania widoku", "Nie można załadować widoku panelu. " + e.getMessage());
             e.printStackTrace();
         }
     }

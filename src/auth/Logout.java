@@ -1,22 +1,25 @@
 package src.auth;
 
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
-
+import javafx.fxml.FXML; // Dodaj ten import
 import java.io.IOException;
 
-public abstract class Logout {
-    @FXML
+// Klasa abstrakcyjna lub po prostu klasa bazowa dla kontrolerów, które mają funkcję wylogowania
+public class Logout { // Zmieniono z 'public abstract class Logout'
+    // Metoda obsługująca wylogowanie, wywoływana z FXML (np. onMouseClicked)
+    @FXML // Potrzebne, jeśli ta metoda ma być bezpośrednio wywoływana z FXML przez klasy dziedziczące
     public void logout(MouseEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/auth/main.fxml"));
+        System.out.println("Przycisk 'Wyloguj' kliknięty (z abstrakcyjnej klasy Logout).");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/src/auth/LoginController.fxml")); // Upewnij się, że to jest poprawna ścieżka do Twojej głównej sceny logowania
         Parent root = loader.load();
 
         Stage stage = (Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
+        stage.setTitle("Logowanie do Systemu Turniejowego"); // Ustaw tytuł okna
         stage.show();
     }
 }

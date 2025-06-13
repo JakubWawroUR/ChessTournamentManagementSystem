@@ -10,10 +10,9 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="500.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Player.PlayerIndividualMatches">
+<AnchorPane fx:id="mainBox" prefHeight="500.0" prefWidth="750.0" stylesheets="@../assets/styles/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Player.PlayerIndividualMatches">
     <children>
         <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <columnConstraints>
@@ -27,7 +26,7 @@
             <children>
                 <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
                     <children>
-                        <Label text="Mecze gracza ">
+                        <Label fx:id="formText" text="Mecze gracza ">
                             <font>
                                 <Font size="18.0" />
                             </font>
@@ -37,9 +36,9 @@
                                 <Font size="18.0" />
                             </font>
                         </Label>
-                        <Label text=" w turnieju: ">
+                        <Label text=" w turnieju: " textFill="WHITE">
                             <font>
-                                <Font size="18.0" />
+                                <Font name="System Bold" size="18.0" />
                             </font>
                             <HBox.margin>
                                 <Insets left="5.0" />

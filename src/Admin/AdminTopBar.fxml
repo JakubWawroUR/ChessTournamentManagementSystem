@@ -10,9 +10,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<GridPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="src.Admin.AdminTopBar"
-          GridPane.rowIndex="0">
+<GridPane fx:id="topBar" stylesheets="@../assets/styles/style.css" GridPane.rowIndex="0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="src.Admin.AdminTopBar">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" />
         <ColumnConstraints hgrow="SOMETIMES" />
@@ -20,7 +18,7 @@
     <children>
         <VBox alignment="CENTER_LEFT" prefHeight="80.0" prefWidth="100.0" GridPane.halignment="LEFT">
             <children>
-                <Text fx:id="headerText" strokeType="OUTSIDE" strokeWidth="0.0" text="Panel Administratora">
+                <Text fx:id="topBarText" strokeType="OUTSIDE" strokeWidth="0.0" text="Panel Administratora">
                     <font>
                         <Font size="30.0" />
                     </font>

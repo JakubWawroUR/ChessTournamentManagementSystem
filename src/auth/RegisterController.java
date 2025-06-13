@@ -12,7 +12,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.stage.Stage;
 import src.dao.UserDAO;
 import src.model.Role;
-import src.model.User; // Potrzebny import dla klasy User
 
 import java.io.IOException;
 import java.sql.SQLException; // Potrzebny import dla SQLException
@@ -90,7 +89,7 @@ public class RegisterController implements SceneSwitcher {
     @Override
     public void switchScene(ActionEvent event) throws IOException {
         System.out.println("Przełączanie sceny...");
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("main.fxml")); // main.fxml to zakładam ekran logowania
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("LoginController.fxml")); // LoginController.fxml to zakładam ekran logowania
         Parent root = loader.load();
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         stage.setScene(new Scene(root));
