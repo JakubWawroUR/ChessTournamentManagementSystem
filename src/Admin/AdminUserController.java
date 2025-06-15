@@ -35,33 +35,25 @@ public class AdminUserController implements Initializable {
     @FXML private TableColumn<User, Role> roleColumn;
     @FXML private TableColumn<User, Integer> rankingColumn;
     @FXML private TableColumn<User, Void> actionsColumn;
-
     @FXML private TextField userIdField;
     @FXML private TextField loginField;
     @FXML private PasswordField passwordField;
     @FXML private TextField firstnameField;
     @FXML private TextField lastnameField;
     @FXML private ComboBox<Role> roleComboBox;
-
     @FXML private Label rankingLabel;
     @FXML private TextField rankingField;
-
     @FXML private Button addEditUserButton;
     @FXML private Button updateSaveUserButton;
     @FXML private Button clearFormButton;
-
     @FXML private Button btnShowAdmins;
     @FXML private Button btnShowPlayers;
-    @FXML private Button btnShowAll;
-
     private UserDAO userDAO = new UserDAO();
     private PlayerDAO playerDAO = new PlayerDAO();
-    private ObservableList<User> userList = FXCollections.observableArrayList(); // Inicjalizacja userList
+    private ObservableList<User> userList = FXCollections.observableArrayList();
 
-    // Nowa zmienna do śledzenia aktywnego filtru
     private FilterType activeFilter = FilterType.PLAYERS;
 
-    // Definicja typu wyliczeniowego dla filtrów
     private enum FilterType {
         ALL,
         PLAYERS,
@@ -70,7 +62,7 @@ public class AdminUserController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Ustawienie cel dla kolumn w TableView
+
         idColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getId()).asObject());
         loginColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getLogin()));
         passwordColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getPassword()));
@@ -83,64 +75,54 @@ public class AdminUserController implements Initializable {
             if (user instanceof Player) {
                 return new SimpleIntegerProperty(((Player) user).getRanking()).asObject();
             }
-            return new SimpleIntegerProperty(0).asObject(); // Domyślnie 0 dla nie-graczy
+            return new SimpleIntegerProperty(0).asObject();
         });
 
-        // Dostosowanie wyświetlania kolumny rankingu
         rankingColumn.setCellFactory(tc -> new TableCell<User, Integer>() {
             @Override
             protected void updateItem(Integer ranking, boolean empty) {
                 super.updateItem(ranking, empty);
                 if (empty || getTableRow().getItem() == null || !(getTableRow().getItem() instanceof Player)) {
-                    setText(null); // Brak tekstu dla pustych komórek lub nie-graczy
+                    setText(null);
                 } else {
                     setText(ranking.toString());
                 }
             }
         });
 
-        // Ustawienie elementów ComboBoxa ról i dodanie listenera
         roleComboBox.setItems(FXCollections.observableArrayList(Role.values()));
         roleComboBox.valueProperty().addListener((obs, oldRole, newRole) -> {
             boolean isPlayer = (newRole == Role.GRACZ);
             rankingLabel.setVisible(isPlayer);
-            rankingLabel.setManaged(isPlayer); // Kontroluj zarządzanie układem
+            rankingLabel.setManaged(isPlayer);
             rankingField.setVisible(isPlayer);
-            rankingField.setManaged(isPlayer); // Kontroluj zarządzanie układem
+            rankingField.setManaged(isPlayer);
             if (!isPlayer) {
-                rankingField.clear(); // Wyczyść pole rankingu, jeśli rola nie jest GRACZ
+                rankingField.clear();
             }
         });
 
-        setupActionsColumn(); // Konfiguracja kolumny akcji (Edytuj/Usuń)
+        setupActionsColumn();
 
-        // Najpierw przypisz zainicjalizowaną userList do TableView
         userTable.setItems(userList);
-        // Ładuje tylko graczy przy starcie i ustawia aktywny filtr
         loadUsersByRole(Role.GRACZ);
         activeFilter = FilterType.PLAYERS;
 
-        // Ustawienie akcji dla przycisków i aktualizacja aktywnego filtra
         addEditUserButton.setOnAction(event -> handleAddUser());
         updateSaveUserButton.setOnAction(event -> handleUpdateUser());
         clearFormButton.setOnAction(event -> resetForm());
 
         btnShowAdmins.setOnAction(event -> {
             loadUsersByRole(Role.ADMINISTRATOR);
-            activeFilter = FilterType.ADMINS; // Zaktualizuj filtr po kliknięciu
+            activeFilter = FilterType.ADMINS;
         });
         btnShowPlayers.setOnAction(event -> {
             loadUsersByRole(Role.GRACZ);
-            activeFilter = FilterType.PLAYERS; // Zaktualizuj filtr po kliknięciu
+            activeFilter = FilterType.PLAYERS;
         });
-        if (btnShowAll != null) {
-            btnShowAll.setOnAction(event -> {
-                loadAllUsers();
-                activeFilter = FilterType.ALL; // Zaktualizuj filtr po kliknięciu
-            });
-        }
 
-        resetForm(); // Wyczyść formularz przy starcie
+
+        resetForm();
     }
 
     private void setupActionsColumn() {
@@ -150,19 +132,19 @@ public class AdminUserController implements Initializable {
             private final HBox pane = new HBox(5, editButton, deleteButton);
 
             {
-                pane.setAlignment(Pos.CENTER); // Wyśrodkuj przyciski w komórce
+                pane.setAlignment(Pos.CENTER);
 
                 editButton.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     if (user != null) {
-                        handleEditRequest(user); // Obsługa żądania edycji
+                        handleEditRequest(user);
                     }
                 });
 
                 deleteButton.setOnAction(event -> {
                     User user = getTableView().getItems().get(getIndex());
                     if (user != null) {
-                        handleDeleteUser(user); // Obsługa żądania usunięcia
+                        handleDeleteUser(user);
                     }
                 });
             }
@@ -171,9 +153,9 @@ public class AdminUserController implements Initializable {
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty) {
-                    setGraphic(null); // Nic nie wyświetlaj dla pustych komórek
+                    setGraphic(null);
                 } else {
-                    setGraphic(pane); // Wyświetl przyciski
+                    setGraphic(pane);
                 }
             }
         };
@@ -181,7 +163,6 @@ public class AdminUserController implements Initializable {
         actionsColumn.setCellFactory(cellFactory);
     }
 
-    // Metoda do obsługi żądania edycji użytkownika z tabeli
     private void handleEditRequest(User user) {
         userIdField.setText(String.valueOf(user.getId()));
         loginField.setText(user.getLogin());
@@ -189,7 +170,6 @@ public class AdminUserController implements Initializable {
         firstnameField.setText(user.getFirstName());
         lastnameField.setText(user.getLastName());
         roleComboBox.setValue(user.getRole());
-
         if (user.getRole() == Role.GRACZ) {
             rankingLabel.setVisible(true);
             rankingLabel.setManaged(true);
@@ -228,8 +208,6 @@ public class AdminUserController implements Initializable {
 
         showAlert(Alert.AlertType.INFORMATION, "Edycja użytkownika", "Edytujesz użytkownika: " + user.getLogin());
     }
-
-    // Metoda do dodawania nowego użytkownika
     @FXML
     private void handleAddUser() {
         String login = loginField.getText();
@@ -263,7 +241,7 @@ public class AdminUserController implements Initializable {
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Sukces", "Użytkownik '" + login + "' został pomyślnie dodany.");
                 resetForm();
-                refreshTable(); // Odśwież tabelę po dodaniu, zachowując filtr
+                refreshTable();
             } else {
                 showAlert(Alert.AlertType.WARNING, "Błąd", "Użytkownik o loginie '" + login + "' już istnieje.");
             }
@@ -273,7 +251,7 @@ public class AdminUserController implements Initializable {
         }
     }
 
-    // Metoda do aktualizacji istniejącego użytkownika
+
     @FXML
     private void handleUpdateUser() {
         if (userIdField.getText().isEmpty()) {
@@ -293,7 +271,6 @@ public class AdminUserController implements Initializable {
             showAlert(Alert.AlertType.ERROR, "Błąd edycji", "Proszę wypełnić wszystkie pola.");
             return;
         }
-
         int ranking = 0;
         if (role == Role.GRACZ) {
             if (rankingField.getText().isEmpty()) {
@@ -313,15 +290,18 @@ public class AdminUserController implements Initializable {
             userDAO.updateUser(updatedUser);
 
             if (role == Role.GRACZ) {
-                Integer currentRanking = playerDAO.getPlayerRanking(id);
-                if (currentRanking != null) {
-                    playerDAO.updatePlayerRanking(id, ranking);
+                Integer playerTableId = playerDAO.getPlayersTableIdByUserId(id);
+                if (playerTableId != null) {
+                    playerDAO.updatePlayerRanking(playerTableId, ranking);
                 } else {
                     playerDAO.addPlayerDetails(id, ranking);
                 }
             } else {
                 try {
-                    playerDAO.deletePlayerDetails(id);
+                    Integer playerTableIdToDelete = playerDAO.getPlayersTableIdByUserId(id);
+                    if (playerTableIdToDelete != null) {
+                        playerDAO.deletePlayerDetails(playerTableIdToDelete);
+                    }
                 } catch (SQLException e) {
                     System.err.println("Błąd podczas usuwania danych gracza (może nie istniały): " + e.getMessage());
                 }
@@ -329,14 +309,12 @@ public class AdminUserController implements Initializable {
 
             showAlert(Alert.AlertType.INFORMATION, "Sukces", "Użytkownik '" + login + "' został pomyślnie zaktualizowany.");
             resetForm();
-            refreshTable(); // Odśwież tabelę po aktualizacji, zachowując filtr
+            refreshTable();
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Błąd bazy danych", "Wystąpił błąd podczas aktualizacji użytkownika: " + e.getMessage());
             e.printStackTrace();
         }
     }
-
-    // Metoda do usuwania użytkownika
     private void handleDeleteUser(User user) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Potwierdź usunięcie");
@@ -351,7 +329,7 @@ public class AdminUserController implements Initializable {
 
                 showAlert(Alert.AlertType.INFORMATION, "Sukces", "Użytkownik '" + user.getLogin() + "' został pomyślnie usunięty.");
                 resetForm();
-                refreshTable(); // Odśwież tabelę po usunięciu, zachowując filtr
+                refreshTable();
             } catch (SQLException e) {
                 showAlert(Alert.AlertType.ERROR, "Błąd bazy danych", "Wystąpił błąd podczas usuwania użytkownika: " + e.getMessage());
                 e.printStackTrace();
@@ -359,7 +337,6 @@ public class AdminUserController implements Initializable {
         }
     }
 
-    // Metoda do resetowania/czyszczenia formularza
     @FXML
     private void resetForm() {
         userIdField.clear();
@@ -368,13 +345,11 @@ public class AdminUserController implements Initializable {
         firstnameField.clear();
         lastnameField.clear();
         roleComboBox.setValue(null);
-
         rankingLabel.setVisible(false);
         rankingLabel.setManaged(false);
         rankingField.setVisible(false);
         rankingField.setManaged(false);
         rankingField.clear();
-
         addEditUserButton.setText("Dodaj Użytkownika");
         addEditUserButton.setVisible(true);
         addEditUserButton.setManaged(true);
@@ -384,9 +359,7 @@ public class AdminUserController implements Initializable {
         clearFormButton.setManaged(false);
     }
 
-    // Metoda do ładowania wszystkich użytkowników z bazy danych do tabeli
     private void loadAllUsers() {
-        System.out.println("Ładowanie wszystkich użytkowników...");
         try {
             List<User> users = userDAO.getAllUsers();
             userList.setAll(users);
@@ -398,9 +371,7 @@ public class AdminUserController implements Initializable {
         }
     }
 
-    // Metoda do ładowania użytkowników według określonej roli (Admin/Gracz)
     private void loadUsersByRole(Role role) {
-        System.out.println("Ładowanie użytkowników z rolą: " + role.toString());
         try {
             List<User> allUsers = userDAO.getAllUsers();
             List<User> filteredUsers = allUsers.stream()
@@ -416,9 +387,7 @@ public class AdminUserController implements Initializable {
         }
     }
 
-    // Metoda pomocnicza do odświeżania tabeli z uwzględnieniem aktywnego filtra
     private void refreshTable() {
-        System.out.println("Odświeżanie tabeli, aktywny filtr: " + activeFilter);
         switch (activeFilter) {
             case ADMINS:
                 loadUsersByRole(Role.ADMINISTRATOR);
@@ -427,13 +396,11 @@ public class AdminUserController implements Initializable {
                 loadUsersByRole(Role.GRACZ);
                 break;
             case ALL:
-            default: // Domyślnie lub jeśli FilterType.ALL
+            default:
                 loadAllUsers();
                 break;
         }
     }
-
-    // Metoda pomocnicza do wyświetlania alertów
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

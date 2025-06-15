@@ -19,7 +19,6 @@ public class NavigationPanel {
     @FXML
     private Text tournamentsText;
 
-
     @FXML
     public void switchScene(MouseEvent event) throws IOException {
         System.out.println("dziala");
@@ -27,13 +26,10 @@ public class NavigationPanel {
         String fxmlFile = null;
 
         if (source == usersText) {
-            System.out.println("Przełączam na Użytkowników");
             fxmlFile = "AdminUserController.fxml";
         } else if (source == tournamentsText) {
-            System.out.println("Przełączam na Turnieje");
             fxmlFile = "AdminTournamentController.fxml";
         } else {
-            System.out.println("Nieznany element");
             return;
         }
 

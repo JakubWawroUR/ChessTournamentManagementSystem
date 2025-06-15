@@ -6,18 +6,16 @@ public class Game {
     private int gameNumber;
     private int player1Id;
     private int player2Id;
-    private Integer winnerId; // Może być null dla remisu
+    private Integer winnerId;
 
-    // Dodatkowe pola do wyświetlania nazw i informacji w interfejsie
     private String player1Name;
     private String player2Name;
-    private String winnerName; // Będzie "Remis" lub nazwa zwycięzcy
+    private String winnerName; 
     private String tournamentName;
     private String opponentName;
-    private String individualResultDisplay; // <--- DODAJ TĘ LINIĘ
+    private String individualResultDisplay;
 
 
-    // Konstruktor podstawowy
     public Game(int id, int tournamentId, int gameNumber, int player1Id, int player2Id, Integer winnerId) {
         this.id = id;
         this.tournamentId = tournamentId;
@@ -27,7 +25,6 @@ public class Game {
         this.winnerId = winnerId;
     }
 
-    // Dodatkowy konstruktor, jeśli używasz go w PlayerDAO (np. dla specyficznego porządku parametrów)
     public Game(int id, int tournamentId, int player1Id, int player2Id, Integer winnerId, int gameNumber) {
         this.id = id;
         this.tournamentId = tournamentId;
@@ -38,7 +35,6 @@ public class Game {
     }
 
 
-    // Gettery
     public int getId() { return id; }
     public int getTournamentId() { return tournamentId; }
     public int getGameNumber() { return gameNumber; }
@@ -46,16 +42,13 @@ public class Game {
     public int getPlayer2Id() { return player2Id; }
     public Integer getWinnerId() { return winnerId; }
 
-    // Gettery dla nazw i wyświetlania
     public String getPlayer1Name() { return player1Name; }
     public String getPlayer2Name() { return player2Name; }
     public String getWinnerName() { return winnerName; }
     public String getTournamentName() { return tournamentName; }
     public String getOpponentName() { return opponentName; }
-    public String getIndividualResultDisplay() { return individualResultDisplay; } // <--- DODAJ TĘ METODĘ
+    public String getIndividualResultDisplay() { return individualResultDisplay; }
 
-
-    // Settery
     public void setId(int id) { this.id = id; }
     public void setTournamentId(int tournamentId) { this.tournamentId = tournamentId; }
     public void setGameNumber(int gameNumber) { this.gameNumber = gameNumber; }
@@ -68,5 +61,5 @@ public class Game {
     public void setWinnerName(String winnerName) { this.winnerName = winnerName; }
     public void setTournamentName(String tournamentName) { this.tournamentName = tournamentName; }
     public void setOpponentName(String opponentName) { this.opponentName = opponentName; }
-    public void setIndividualResultDisplay(String individualResultDisplay) { this.individualResultDisplay = individualResultDisplay; } // <--- DODAJ TĘ METODĘ
+    public void setIndividualResultDisplay(String individualResultDisplay) { this.individualResultDisplay = individualResultDisplay; }
 }

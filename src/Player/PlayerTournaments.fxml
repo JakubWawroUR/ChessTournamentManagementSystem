@@ -16,7 +16,6 @@
                         <Insets bottom="20.0" top="20.0" />
                     </VBox.margin>
                 </Label>
-
                 <TableView fx:id="tournamentsTable" prefHeight="400.0" prefWidth="800.0">
                     <columns>
                         <TableColumn fx:id="idColumn" prefWidth="50.0" text="ID" />
@@ -35,7 +34,6 @@
                         <Insets bottom="20.0" />
                     </VBox.margin>
                 </TableView>
-
             </children>
         </VBox>
     </children>

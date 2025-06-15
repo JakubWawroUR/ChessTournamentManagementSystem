@@ -3,10 +3,8 @@ package src.Admin;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label; // Potrzebne, jeśli używasz Label
-// import javafx.scene.text.Text; // Możesz usunąć, jeśli nie używasz
-import javafx.scene.layout.AnchorPane; // Dodany import dla AnchorPane
+import javafx.scene.control.Label;
+import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import src.model.Game;
 
@@ -14,13 +12,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class AdminResolveGame implements Initializable {
-
-    @FXML private AnchorPane mainBox; // Jeśli chcesz mieć referencję do głównego panelu
-
-    // *** ZAKTUALIZOWANE FX:ID dla Labeli ***
-    @FXML private Label matchInfoLabel;    // Odpowiada za "Mecz: [Gracz1] vs [Gracz2]"
-    @FXML private Label instructionLabel; // Odpowiada za "Rozstrzygnij spotkanie"
-
+    @FXML private AnchorPane mainBox;
+    @FXML private Label matchInfoLabel;
+    @FXML private Label instructionLabel;
     @FXML private Button player1WinButton;
     @FXML private Button player2WinButton;
     @FXML private Button drawButton;
@@ -29,12 +23,10 @@ public class AdminResolveGame implements Initializable {
     private Integer winnerPlayerId = null;
     private String winnerPlayerName = null;
 
-    private Stage dialogStage; // Zamiast Dialog<?>, trzymamy referencję do Stage
+    private Stage dialogStage;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Inicjalizacja komponentów FXML
-        // Możesz tutaj np. ustawić początkowy tekst instructionLabel, jeśli nie jest dynamiczny
         if (instructionLabel != null) {
             instructionLabel.setText("Rozstrzygnij spotkanie");
         }
@@ -45,7 +37,6 @@ public class AdminResolveGame implements Initializable {
         this.dialogStage = dialogStage;
 
         if (game != null) {
-            // Ustaw teksty na przyciskach na podstawie nazw graczy
             if (player1WinButton != null) {
                 player1WinButton.setText(game.getPlayer1Name() + " wygrywa");
             }
@@ -55,14 +46,12 @@ public class AdminResolveGame implements Initializable {
             if (drawButton != null) {
                 drawButton.setText("Remis");
             }
-            // Ustaw tekst Labela z informacją o meczu
             if (matchInfoLabel != null) {
                 matchInfoLabel.setText("Mecz: " + game.getPlayer1Name() + " vs " + game.getPlayer2Name());
             }
         }
-        this.winnerPlayerName = null; // Resetuj wynik przed każdym użyciem
+        this.winnerPlayerName = null;
     }
-
     @FXML
     private void handlePlayer1Win() {
         if (game != null) {
@@ -73,7 +62,6 @@ public class AdminResolveGame implements Initializable {
             }
         }
     }
-
     @FXML
     private void handlePlayer2Win() {
         if (game != null) {
@@ -84,7 +72,6 @@ public class AdminResolveGame implements Initializable {
             }
         }
     }
-
     @FXML
     private void handleDraw() {
         this.winnerPlayerId = null;
@@ -93,7 +80,6 @@ public class AdminResolveGame implements Initializable {
             dialogStage.close();
         }
     }
-
     @FXML
     private void handleCancel() {
         this.winnerPlayerId = null;
@@ -102,7 +88,6 @@ public class AdminResolveGame implements Initializable {
             dialogStage.close();
         }
     }
-
     public Integer getWinnerPlayerId() {
         return winnerPlayerId;
     }

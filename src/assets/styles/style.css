@@ -107,54 +107,54 @@
 
 }
 .table-view {
-    -fx-background-color: #613161; /* Tło całej tabeli (ciemnofioletowe) */
-    -fx-border-color: #451945;     /* Zewnętrzne obramowanie całej tabeli */
+    -fx-background-color: #613161;
+    -fx-border-color: #451945;
     -fx-border-width: 3px;
 }
 
-/* Styl tła nagłówków kolumn (obszar, w którym są napisy ID, login itd.) */
+
 .table-view .column-header-background {
-    -fx-background-color: #613161; /* Nowy kolor tła dla nagłówków */
-    -fx-border-color: #381B38;     /* Kolor linii obramowania Dookoła całego paska nagłówka */
+    -fx-background-color: #613161;
+    -fx-border-color: #381B38;
     -fx-border-width: 2px;
 }
 
-/* Styl dla samych komórek nagłówka (gdzie jest tekst "ID", "login") */
+
 .table-view .column-header {
-    -fx-background-color: transparent; /* Często ustawia się na transparent, żeby tło z .column-header-background było widoczne */
-    -fx-border-color: #381B38;     /* Kolor pionowych linii rozdzielających nagłówki (pomiędzy ID, login itd.) */
+    -fx-background-color: transparent;
+    -fx-border-color: #381B38;
 
 
 }
 
-/* Kolor tekstu w nagłówkach */
+
 .table-view .column-header .label {
-    -fx-text-fill: white; /* Kolor tekstu w nagłówkach (np. "ID", "login") */
+    -fx-text-fill: white;
     -fx-font-weight: bold
 }
 
-/* Styl dla linii rozdzielających wiersze (poziome) i kolumny (pionowe) wewnątrz DANYCH tabeli */
+
 .table-view .table-cell {
-    -fx-border-color: #5A355A; /* Kolor linii wewnątrz tabeli (między danymi) */
-    -fx-border-width: 0 1px 1px 0; /* Przykład: dolna i prawa linia na 1px */
+    -fx-border-color: #5A355A;
+    -fx-border-width: 0 1px 1px 0;
     -fx-text-fill: white;
     -fx-font-weight: bold;
 }
 
-/* Kolor tła dla zaznaczonego wiersza */
+
 .table-view:focused .table-row-cell:filled:selected {
-    -fx-background-color: #dc6fdc; /* Nieco jaśniejszy fiolet */
+    -fx-background-color: #dc6fdc;
     -fx-text-fill: white;
 }
 
-/* Kolor tła dla wierszy nieparzystych (alternatywne tło dla lepszej czytelności) */
+
 .table-view .table-row-cell:odd {
-    -fx-background-color: #613161; /* Ciemnofioletowe tło (jak główne) */
+    -fx-background-color: #613161;
 }
 
-/* Kolor tła dla wierszy parzystych */
+
 .table-view .table-row-cell:even {
-    -fx-background-color: #7A3D7A; /* Nieco jaśniejszy fiolet */
+    -fx-background-color: #7A3D7A;
 }
 #formText{
     -fx-text-fill: white;

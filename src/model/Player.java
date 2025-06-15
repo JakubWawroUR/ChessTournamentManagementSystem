@@ -1,63 +1,45 @@
-// src/model/Player.java
-
 package src.model;
 
 public class Player extends User {
-    private int playersTableId; // ID z tabeli 'players' (kolumna 'id' w tabeli players)
-    private int ranking;        // Ranking gracza
-    private int displayNumber;  // Nowe pole do przechowywania kolejnego numeru dla wyświetlania w tabeli
-
-    // --- POLA DLA REKORDU W TURNIEJU (TERAZ JUŻ Z GAMES_PLAYED) ---
+    private int playerId;
+    private int ranking;
+    private int displayNumber;
     private int wins;
     private int draws;
     private int losses;
-    private int gamesPlayed; // Dodane pole
-    // --- KONIEC PÓL REKORDU ---
+    private int gamesPlayed;
 
-
-    // *** KLUCZOWY KONSTRUKTOR Z BAZY DANYCH ***
-    // Używany, gdy pobieramy gracza z połączonych tabel users i players.
-    // Argumenty:
-    // id: to jest id z tabeli users (User.id)
-    // login, password, firstname, lastname, role: dziedziczone z User
-    // playersTableId: id z tabeli players
-    // ranking, wins, draws, losses, gamesPlayed: z tabeli players
     public Player(int id, String login, String password, String firstname, String lastname, Role role,
-                  int playersTableId, int ranking, int wins, int draws, int losses, int gamesPlayed) {
-        // Wywołanie konstruktora klasy bazowej (User)
+                  int playerId,
+                  int ranking, int wins, int draws, int losses, int gamesPlayed) {
         super(id, login, password, firstname, lastname, role);
 
-        // Inicjalizacja pól specyficznych dla Player
-        this.playersTableId = playersTableId;
+        this.playerId = playerId;
         this.ranking = ranking;
         this.wins = wins;
         this.draws = draws;
         this.losses = losses;
-        this.gamesPlayed = gamesPlayed; // Inicjalizacja gamesPlayed
-        this.displayNumber = 0; // Domyślna wartość, będzie ustawiana w kontrolerze UI
+        this.gamesPlayed = gamesPlayed;
+        this.displayNumber = 0;
     }
 
-    // Konstruktor dla NOWEGO gracza, który nie ma jeszcze ID z bazy danych.
-    // Domyślne wartości dla playersTableId, wins, draws, losses, gamesPlayed.
     public Player(String login, String password, String firstname, String lastname, int ranking) {
-        // Nowy gracz domyślnie ma rolę GRACZ (jeśli to jest Twoja ENUM-owa wartość)
-        super(login, password, firstname, lastname, Role.GRACZ); // Upewnij się, że Role.GRACZ istnieje!
+        super(login, password, firstname, lastname, Role.GRACZ);
         this.ranking = ranking;
-        this.playersTableId = 0; // Tymczasowa wartość, zostanie ustawiona po zapisaniu do bazy
+        this.playerId = 0;
         this.wins = 0;
         this.draws = 0;
         this.losses = 0;
-        this.gamesPlayed = 0; // Inicjalizacja gamesPlayed
-        this.displayNumber = 0; // Domyślna wartość
+        this.gamesPlayed = 0;
+        this.displayNumber = 0;
     }
 
-    // --- Gettery i Settery (specyficzne dla Player) ---
-    public int getPlayersTableId() {
-        return playersTableId;
+    public int getPlayerId() {
+        return playerId;
     }
 
-    public void setPlayersTableId(int playersTableId) {
-        this.playersTableId = playersTableId;
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
     }
 
     public int getRanking() {
@@ -100,35 +82,15 @@ public class Player extends User {
         this.losses = losses;
     }
 
-    public int getGamesPlayed() { // Getter dla gamesPlayed
+    public int getGamesPlayed() {
         return gamesPlayed;
     }
 
-    public void setGamesPlayed(int gamesPlayed) { // Setter dla gamesPlayed
+    public void setGamesPlayed(int gamesPlayed) {
         this.gamesPlayed = gamesPlayed;
     }
 
-    // Metoda pomocnicza do wyświetlania rekordu w formacie W/D/L
     public String getRecord() {
-        return wins + "W / " + draws + "D / " + losses + "L"; // Zmieniono format na spójny
-    }
-
-    @Override
-    public String toString() {
-        return "Player{" +
-                "idUsers=" + getId() + // Dziedziczone z User
-                ", login='" + getLogin() + '\'' + // Dziedziczone z User
-                ", password='" + getPassword() + '\'' + // Dziedziczone z User
-                ", firstName='" + getFirstName() + '\'' + // Dziedziczone z User
-                ", lastName='" + getLastName() + '\'' + // Dziedziczone z User
-                ", role=" + getRole() + // Dziedziczone z User
-                ", playersTableId=" + playersTableId +
-                ", ranking=" + ranking +
-                ", displayNumber=" + displayNumber +
-                ", wins=" + wins +
-                ", draws=" + draws +
-                ", losses=" + losses +
-                ", gamesPlayed=" + gamesPlayed + // Dodano do toString
-                '}';
+        return wins + "W / " + draws + "D / " + losses + "L";
     }
 }

@@ -9,7 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.AlertType; // Import dla AlertType
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
@@ -17,16 +17,13 @@ import javafx.stage.Stage;
 import src.dao.TournamentDAO;
 import src.model.Game;
 import src.model.Tournament;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class AdminGames implements Initializable {
-
     @FXML private Label tournamentNameLabel;
     @FXML private TableView<Game> matchesTable;
     @FXML private TableColumn<Game, Integer> idColumn;
@@ -35,8 +32,7 @@ public class AdminGames implements Initializable {
     @FXML private TableColumn<Game, String> player2Column;
     @FXML private TableColumn<Game, String> winnerColumn;
     @FXML private TableColumn<Game, Void> actionsColumn;
-
-    private Tournament selectedTournament; // Ten obiekt teraz przechowuje status turnieju
+    private Tournament selectedTournament;
     private ObservableList<Game> gameList;
     private TournamentDAO tournamentDAO;
 
@@ -44,16 +40,12 @@ public class AdminGames implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         tournamentDAO = new TournamentDAO();
         gameList = FXCollections.observableArrayList();
-
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         gameNumberColumn.setCellValueFactory(new PropertyValueFactory<>("gameNumber"));
         player1Column.setCellValueFactory(new PropertyValueFactory<>("player1Name"));
         player2Column.setCellValueFactory(new PropertyValueFactory<>("player2Name"));
         winnerColumn.setCellValueFactory(new PropertyValueFactory<>("winnerName"));
-
-        setupActionsColumn(); // Ta metoda jest wywoływana tylko raz przy inicjalizacji
-        // Ale jej logika updateItem jest wywoływana dla każdej komórki
-
+        setupActionsColumn();
         matchesTable.setItems(gameList);
     }
 
@@ -61,8 +53,7 @@ public class AdminGames implements Initializable {
         this.selectedTournament = tournament;
         tournamentNameLabel.setText("Mecze turnieju: " + tournament.getName() + " (Status: " + tournament.getStatus() + ")");
         loadMatchesData();
-        // Po załadowaniu danych, odśwież tabelę, aby zaktualizować stan przycisków "Rozstrzygnij"
-        matchesTable.refresh(); // Ważne!
+        matchesTable.refresh();
     }
 
     private void loadMatchesData() {
@@ -84,7 +75,6 @@ public class AdminGames implements Initializable {
 
             {
                 pane.setAlignment(Pos.CENTER);
-
                 resolveButton.setOnAction(event -> {
                     Game game = getTableView().getItems().get(getIndex());
                     handleResolveGame(game);
@@ -97,13 +87,12 @@ public class AdminGames implements Initializable {
                 if (empty) {
                     setGraphic(null);
                 } else {
-                    // *** KLUCZOWA LOGIKA: WŁĄCZANIE/WYŁĄCZANIE PRZYCISKU NA PODSTAWIE STATUSU TURNIEJU ***
                     if (selectedTournament != null && selectedTournament.getStatus().equals("ZAKOŃCZONY")) {
-                        resolveButton.setDisable(true); // Wyłącz przycisk, jeśli turniej jest zakończony
-                        resolveButton.setText("Zakończony"); // Zmień tekst przycisku
+                        resolveButton.setDisable(true);
+                        resolveButton.setText("Zakończony");
                     } else {
-                        resolveButton.setDisable(false); // Włącz przycisk
-                        resolveButton.setText("Rozstrzygnij"); // Domyślny tekst
+                        resolveButton.setDisable(false);
+                        resolveButton.setText("Rozstrzygnij");
                     }
                     setGraphic(pane);
                 }
@@ -112,43 +101,32 @@ public class AdminGames implements Initializable {
     }
 
     private void handleResolveGame(Game game) {
-        // Dodatkowa walidacja: sprawdź status turnieju bezpośrednio przed otwarciem dialogu
         if (selectedTournament != null && selectedTournament.getStatus().equals("ZAKOŃCZONY")) {
             showAlert(AlertType.WARNING, "Turniej Zakończony", "Nie można rozstrzygać meczów w zakończonym turnieju.");
-            return; // Zakończ, jeśli turniej jest zakończony
+            return;
         }
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("AdminResolveGame.fxml"));
             Parent root = loader.load();
             AdminResolveGame adminResolveGame = loader.getController();
-
             Stage dialogStage = new Stage();
             dialogStage.setTitle("Rozstrzygnij mecz");
             dialogStage.setAlwaysOnTop(true);
             dialogStage.initModality(Modality.APPLICATION_MODAL);
             dialogStage.initOwner(matchesTable.getScene().getWindow());
-
             Scene scene = new Scene(root);
             dialogStage.setScene(scene);
-
             adminResolveGame.initData(game, dialogStage);
-
             dialogStage.showAndWait();
-
             Integer winnerId = adminResolveGame.getWinnerPlayerId();
             String winnerName = adminResolveGame.getWinnerPlayerName();
-
             if (winnerId != null || (winnerId == null && winnerName != null && winnerName.equals("Remis"))) {
                 try {
-                    Integer oldWinnerId = game.getWinnerId();
-
                     tournamentDAO.updateGameResult(game.getId(), winnerId);
                     game.setWinnerId(winnerId);
                     game.setWinnerName(winnerName);
                     matchesTable.refresh();
-
-                    tournamentDAO.callUpdatePlayerStatsProcedure(game.getId(), oldWinnerId, winnerId, game.getPlayer1Id(), game.getPlayer2Id());
 
                     showAlert(AlertType.INFORMATION, "Sukces", "Wynik meczu został rozstrzygnięty.");
                 } catch (SQLException e) {
@@ -158,7 +136,6 @@ public class AdminGames implements Initializable {
             } else {
                 System.out.println("Rozstrzygnięcie meczu anulowane.");
             }
-
         } catch (IOException e) {
             showAlert(AlertType.ERROR, "Błąd", "Nie można załadować okna rozstrzygania meczu.");
             e.printStackTrace();
@@ -167,7 +144,6 @@ public class AdminGames implements Initializable {
             e.printStackTrace();
         }
     }
-
     private void showAlert(AlertType alertType, String title, String message) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
